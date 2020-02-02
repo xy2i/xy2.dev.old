@@ -1,0 +1,19 @@
+.main .about {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .big {
+    font-size: 2rem;
+  }
+  p {
+    font-size: 1.1rem;
+  }
+
+  @media (min-width: $md) {
+		.center {
+			padding: 1rem;
+		}
+	}
+}

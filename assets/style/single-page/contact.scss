@@ -1,0 +1,72 @@
+.main .contact {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .big {
+    font-size: 3rem;
+  }
+  p {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    font-size: 1.5rem;
+  }
+
+  .small {
+    font-size: 1rem;
+    color: $secondary;
+    padding-left: 1rem;
+    font-family: Fira Code;
+    text-align: right;
+  }
+
+  .link {
+    padding-left: 1rem;
+  }
+
+  .feather {
+    color: $secondary;
+    height: 30px;
+  }
+
+  .gift {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 3rem;
+    flex-direction: column;
+    cursor: grabbing;
+  }
+
+  .question {
+    font-size: 2.5rem;
+    color: $primary;
+    font-family: Roboto Condensed;
+    cursor: grabbing;
+  }
+
+  .fist {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 2.25rem;
+    transition: font-size 0.25s ease-in-out;
+    cursor: grabbing;
+  }
+
+  .fist:active {
+    font-size: 2rem;
+    transition: font-size 0.05s ease-in-out;
+  }
+
+  @media (min-width: $md) {
+    .center {
+      padding: 1rem;
+    }
+  }
+}

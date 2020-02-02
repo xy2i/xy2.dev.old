@@ -1,0 +1,15 @@
+<li class="preview">
+  <a class="preview-a-img" href="{{ .Permalink }}">
+    {{ with .Resources.ByType "image" }}
+      {{ range where . ".Name" "cover.webp" }}
+         <img class="preview-img" src="{{ .RelPermalink }}">
+      {{ end }}
+    {{ end }}
+  </a>
+  <span class="preview-title">
+    {{ .Title }}
+  </span>
+  <span class="preview-date">
+    {{- .PublishDate.Format "January 2, 2006" -}}
+  </span>
+</li>

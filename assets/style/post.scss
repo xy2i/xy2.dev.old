@@ -1,0 +1,116 @@
+// CSS is generated automatically by Hugo.
+@import 'syntax'; 
+
+.post {
+  // Info at start of post
+  font-family: 'Rosario', sans-serif;
+  font-size: 1rem;
+  .info {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  h1 {
+    margin-bottom: 0;
+  }
+
+  .date {
+    color: $secondary;
+    margin-right: 1em;
+    font-family: Fira Code, monospace;
+
+    .feather {
+      width: 1rem;
+      height: auto;
+    }
+  }
+
+  .categories {
+    display: flex;
+  }
+  .category {
+    font-size: 0.8rem;
+  }
+  .category:not(:first-child) {
+    padding-right: 1em;
+  }
+
+  .content {
+    $chroma-border-radius: 0 0 3rem 0;
+
+    // Put a border for the main table.
+    // In the generated CSS, .chroma is the element with
+    // a background.
+    .highlight > .chroma {
+      border-radius: $chroma-border-radius;
+    }
+
+    .chroma {
+      margin: 0;
+
+      // The table itself.
+      .lntable {
+        border-radius: $chroma-border-radius;
+        border-top: 2px solid $primary;
+        border-bottom: 1px solid $secondary;
+        border-right: 1px solid $dark-gray;
+        box-shadow: 3px 3px 3px $light-gray;
+      }
+
+      // The block of line numbers.
+      td:first-child {
+        border-right: 1px dotted $primary;
+        padding-left: 1rem;
+        padding-right: 0.25em;
+        background-color: rgba($secondary, 0.4);
+      }
+      // Each line number.
+      .lnt {
+        padding: 0;
+        margin: 0;
+        color: black;
+        background-color: rgba($secondary, 0.4);
+      }
+
+      // The code block.
+      td:last-child {
+        padding-left: 1rem;
+      }
+
+      // Needed because of dumb chroma styling.
+      code {
+        font-family: "Fira Code";
+        font-size: 0.85rem;
+        -moz-tab-size: 4;
+        tab-size: 4;
+      }
+      pre {
+        font-family: "Fira Code";
+        font-size: 0.85rem;
+      }
+    }
+
+    // Single code block styling.
+    p code {
+      font-size: 0.85rem;
+      display: inline-block;
+      border: 1px solid $secondary;
+      padding: 0 0.25rem 0 0.25rem;
+      border-radius: 3px;
+      background: white;
+    }
+
+    video {
+      width: 75%;
+      display: block;
+      margin: 0 auto;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+  }
+}

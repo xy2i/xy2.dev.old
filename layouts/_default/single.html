@@ -1,0 +1,28 @@
+{{ define "main" }}
+<div class="post">
+    <h1>{{ .Title }}</h1>
+    <div class="info">
+        <span class="date">
+            <i data-feather="clock"></i>
+            {{ .PublishDate.Format "January 2, 2006" }}
+        </span>
+        <div class="categories">
+        {{ with .Params.categories }}
+            {{ range . }}
+            {{ $href := print (absURL "categories/") (urlize .) }}
+            <a class="category btn" href="{{ $href }}">
+                {{ . }}
+            </a>
+            {{ end }}
+        {{ end }}
+        </div>
+    </div>
+    <div class="content">
+        {{ .Content }}
+    </div>
+</div>
+<script src="/js/feather.min.js"></script>
+<script>
+    feather.replace()
+</script>
+{{ end }}

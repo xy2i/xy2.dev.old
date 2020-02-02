@@ -1,0 +1,305 @@
+$md: 800px;
+$lg: 1000px;
+
+$primary: #D95E37;
+$secondary: #313854;
+// Couleur thé
+$primary: #533633; 
+$secondary: #B4B881;
+$light-gray: #DDD;
+$dark-gray: #433F3C;
+$light-white: white;
+
+@import 'font';
+@import 'post-list';
+@import 'post';
+@import 'single-page/about';
+@import 'single-page/portfolio';
+@import 'single-page/contact';
+
+* {
+  box-sizing: border-box;
+}
+body {     
+  font-family: Rosario, sans-serif;
+  font-size: 14px;
+  margin: 0;
+  background-color: white;
+  height: 100vh;
+}
+.container {
+  height: 100%;
+}
+#instantclick-bar {
+  background: linear-gradient(90deg, $primary 0%, rgba($secondary, 0.4) 100%);
+}
+/*
+All pages are arranged in a grid. There are two main
+layouts:
+- for small devices, 
+     sidebar;
+     about
+     main
+- for bigger devices, tablet or computer:
+     sidebar main
+     about   main
+     about   main.
+* sidebar is the main image, and an header that says xy2_.
+* about is a nav with some links, in the form of a 
+short presentation.
+* main is the main content. It can be a list of pages,
+or a page itself.
+*/
+.container {
+  display: grid;
+  grid-template-areas: 
+    "sidebar"
+    "about"
+    "main";
+  grid-template-rows:
+  [sidebar] 3rem
+  [about] 2rem;
+}
+$main-padding: 1rem; //! Padding on the sides.
+.main {
+  grid-area: main;
+  justify-self: center;
+  width: 100%;
+  max-width: 750px; //! Size of main area.
+  // https://stackoverflow.com/questions/43311943/prevent-content-from-expanding-grid-items
+  min-width: 0;
+  padding-left: $main-padding;
+  padding-right: $main-padding;
+}
+.sidebar {
+  grid-area: sidebar;
+}
+
+.main-title {
+  margin-top: 0;
+}
+
+// The main image. Part of the sidebar, header
+// otherwhise if on small devices.
+.sidebar {
+  position: relative;
+  border-radius: 0 0 3rem 0;
+  box-shadow: 0 0 0.75rem $dark-gray;
+}
+.sidebar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0 0 3rem 0;
+}
+.sidebar-name { 
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  font-size: 36px;
+  font-weight: bold;
+  letter-spacing: 0.75rem;
+  color: $primary;
+  background: rgba($secondary, 0.5);
+}
+
+/* CSS is hard. So, don't try to style one nav in
+two completely different ways. Instead, we have two divs 
+for two different displays of the about sidebar.
+- presentation-sm displays things in a 
+vertical bar, with links and no description.
+It should float to 
+- presentation-md displays things in a horizontal list,
+with some flavor text, aligned to the right.
+*/
+.presentation-sm {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+.presentation-md {
+  display: none;
+}
+
+// General button class.
+$btn-radius: 0.25rem 0.25rem 1rem 0.25rem;
+.btn {
+  position: relative;
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: $btn-radius;
+  transition: background 0.1s linear;
+  background: $primary;
+  border: none;
+  color: white;
+} 
+.btn + .btn {
+  margin-left: 1rem;
+}
+
+// Styling before a click.
+.btn::before {
+  // Position the item
+  position: absolute;
+  content: "";
+  bottom: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  background: $secondary;
+  z-index: -1;
+  // Style
+  border-radius: $btn-radius;
+  // Ease out
+  // Expotential transform
+  transition: transform .2s cubic-bezier(1,0,0,1);
+  transform: translateX(0rem) translateY(0rem);
+}
+.btn:link {
+  color: white; //! Color of link.
+}
+
+.btn:hover {
+  background: rgba($primary, 0.8);
+  transition: background .05s linear;
+}
+.btn:hover::before {
+  // Position the item
+  position: absolute;
+  content: "";
+  bottom: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  background: $secondary;
+  z-index: -1;
+  transform: translateX(0.25rem) translateY(0.25rem);
+  transition: transform .05s linear;
+}
+.btn:active::before {
+  transform: translateX(0.5rem) translateY(0.5rem);
+  background: rgba($secondary, 0.4);
+  transition: transform .05s linear; 
+  transition: background .05s linear;
+}
+
+// Button is highlighted in some way;
+// such as the current selection in a list.
+.btn-active {
+  background-color: $secondary;
+}
+
+// Description for each 'about' text. Light and
+// non-intrusive.
+.about-title {
+  font-size: 0.75rem;
+  font-family: 'Fira Code';
+  color: $secondary;
+  margin-bottom: 0.25rem;
+}
+
+// Titles.
+$sm-h1-fs: 1.75rem; // Font size for h1
+$sm-h2-fs: 1.3rem;
+
+$md-h1-fs: 1.8rem;
+$md-h2-fs: 1.5rem;
+h1 {
+  font-size: $sm-h1-fs;
+  color: $primary;
+  display: flex;
+  margin-bottom: 0; // Make place for the post information.
+}
+h1::after {
+  content: " ";
+  margin-bottom: 10px;
+  border-radius: 2px;
+  margin-left: 0.25rem;
+  background: linear-gradient(90deg, $primary 0%, rgba($secondary, 0.1) 100%);
+  height: 3px;
+  flex-grow: 1;
+  align-self: flex-end;
+  box-shadow: 3px 3px 3px $light-gray;
+}
+
+h2 {
+  font-size: $sm-h2-fs;
+  color: $primary;
+  display: flex;
+}
+h2::after {
+  content: " ";
+  margin-bottom:  8px;
+  border-radius: 2px;
+  margin-left: 0.25rem;
+  background: linear-gradient(90deg, $primary 0%, rgba($secondary, 0.1) 100%);
+  height: 1px;
+  flex-grow: 1;
+  align-self: flex-end;
+}
+
+a {
+  color: $primary;
+}
+
+@media (min-width: $md) {
+  .container {
+    display: grid;
+    grid-template-areas: 
+      "sidebar main"
+      "about main";
+    grid-template-columns: 
+    [sidebar] minmax(250px, 25fr) //! Minimum size of left column
+    [main] 75fr;
+    grid-template-rows:
+    [sidebar] 294px;
+    grid-column-gap: $main-padding;
+  }
+
+  // Since there's now the grid padding,
+  // delete our own padding.
+  .main {
+    padding-left: 0;
+  }
+
+  .presentation-sm {
+    display: none;
+  }
+  // About me. Text should be to the right,
+  // aligned.
+  .presentation-md {
+    display: inherit; // This class is usually hidden.
+    text-align: right;
+  }
+  .sidebar-img {
+    object-fit: none;
+    background-color: $dark-gray;
+  }
+
+  // Titles.
+  h1 {
+    font-family: Roboto Condensed;
+    font-size: $md-h1-fs;
+    margin-top: 0.25rem;
+    margin-bottom: 0.75rem;
+  }
+  h1::after {
+    font-family: Roboto Condensed;
+    margin-top: $md-h1-fs - $md-h1-fs / 5 ;
+  }
+  h2 {
+    font-family: Roboto Condensed;
+    font-size: $md-h2-fs;
+  }
+  h2::after {
+    font-family: Roboto Condensed;
+    margin-top: $md-h2-fs - $md-h2-fs / 5 ;
+  }
+
+	@media (min-width: $md) {
+		h1 {
+			margin-top: 1rem;
+		}
+	}
+
+}

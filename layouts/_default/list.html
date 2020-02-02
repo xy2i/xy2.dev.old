@@ -1,0 +1,12 @@
+{{ define "main" }}
+
+<div class="post-list">
+  <h1 class="main-title">{{ .Title }}</h1>
+  <ul class="preview-ul">
+  {{ range .Pages.ByPublishDate.Reverse }}
+    {{ partial "preview-item.html" . }}
+  {{ end }}
+  </ul>
+</div>
+
+{{ end }}

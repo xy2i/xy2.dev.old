@@ -1,0 +1,20 @@
+baseURL = "https://xy2.dev/"
+languageCode = "en-us"
+title = "xy2_"
+
+googleAnalytics = "UA-157500582-1 "
+# Other menu entries are defined in their own front-matter.
+
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = false
+    hl_Lines = ""
+    lineNoStart = 1
+    lineNos = true
+    lineNumbersInTable = true
+    noClasses = false
+    style = "solarized-light"
+    tabWidth = 4
+  [markup.goldmark.renderer]
+    unsafe = true # Don't omit HTML

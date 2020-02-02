@@ -1,0 +1,12 @@
+{{ define "main" }}
+
+<div class="post-list">
+  <h1 class="main-title">Posts</h1>
+  <ul class="preview-ul">
+    {{ range where .Site.RegularPages.ByPublishDate.Reverse ".Section" "article"}}
+      {{ partial "preview-item.html" . }}
+    {{ end }}
+  </ul>
+</div>
+
+{{ end }}

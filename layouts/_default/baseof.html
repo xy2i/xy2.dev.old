@@ -1,0 +1,38 @@
+<!doctype html>
+<html ⚡ lang="en">
+<head>
+  {{ partial "head.html" . }}
+</head>  
+<body>
+  <div class="container">
+    <main class="main">
+     {{ block "main" . }}
+     {{ end }}
+    </main>
+    <a class="sidebar" href="{{ .Site.BaseURL }}">
+      <img class="sidebar-img" src="/img/leitmotif.png">
+      <span class="sidebar-name">xy2_</span>
+    </a>
+    <nav class="about">
+      <div class="presentation-sm">
+        {{ $currentPage := . }}
+        {{ range .Site.Menus.main }}
+          <a class="btn {{ if $currentPage.IsMenuCurrent "main" . }}btn-active{{ end }}" href="{{ .URL }}">
+            {{ .Post }}
+          </a> 
+        {{ end }}
+      </div>
+      <div class="presentation-md">
+        {{ $currentPage := . }}
+        {{ range .Site.Menus.main }}
+        <p class="about-title">{{ .Pre }}</p>
+        <div>
+          <a class="btn {{ if $currentPage.IsMenuCurrent "main" . }}btn-active{{ end }}" href="{{ .URL }}">{{ .Name }}</a> 
+        </div>
+        {{ end }}
+      </div>
+    </nav>
+  </div>
+  {{ template "_internal/google_analytics_async.html" . }}
+</body>
+</html>

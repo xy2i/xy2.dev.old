@@ -1,0 +1,20 @@
+<meta charset="utf-8">
+<title>{{ .Title }}</title>
+<meta content="{{ if .Params.summary }}{{ .Params.summary }}{{ end }}" name="description"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+{{ $style := resources.Get "style/main.scss" | toCSS (dict "targetPath" "custom/style.css" "enableSourceMap" true) | fingerprint }} 
+<link rel="stylesheet" href="{{ $style.Permalink }}">
+<meta name="description" content="{{ if .Params.summary }}{{ .Params.summary }}{{ end }}">
+<meta name="keywords" content="hugo elhaj-lahsen, hugo elhaj lahsen, xy2_, xy2, computer science, blog, functional programming, lisp, reverse engineering, reversing, data visualisation, data science, datavis, dataviz">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ .Title }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:site_name" content="{{ .Title }}">
+<meta property="og:description" content="{{ if .Params.summary }}{{ .Params.summary }}{{ end }}">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="{{ "/apple-icon.png" | absURL }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="{{ "/apple-icon.png" | absURL }}">
+<link rel="canonical" href="{{ .Permalink }}">
+<link rel="shortcut icon" href="/favicon.png">
+<link href="{{ "/apple-icon.png" | absURL }}" rel="apple-touch-icon"/>

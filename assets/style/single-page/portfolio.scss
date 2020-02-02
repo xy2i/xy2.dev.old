@@ -1,0 +1,47 @@
+.main .portfolio {
+
+    .link {
+        font-size: 0.75rem;
+    }
+    
+    .grid {
+        display: grid;
+        grid-template-areas: 
+            "preview description"
+            "links   description";
+        grid-template-columns: 
+        [preview] 50fr
+        [description] 50fr;
+        grid-template-rows:
+        [preview] 6rem;
+    }
+
+    .preview {
+        grid-area: preview;
+        flex-basis: 60%;
+        flex-shrink: 0;
+    }
+
+    .description {  
+        grid-area: description;
+        flex-shrink: 1;
+        align-self: flex-end;
+        padding-left: 1rem;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .links {
+        grid-area: links;
+    }
+
+    // Override
+    @media (min-width: $lg) {
+        .preview-date {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: auto;
+        }
+    }
+}

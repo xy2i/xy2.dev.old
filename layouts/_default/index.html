@@ -1,6 +1,15 @@
 {{ define "main" }}
 
 <div class="post-list">
+  <div class="who-am-i">
+    <span class="typewriter">
+      <span class="empty-left "></span>
+      <span class="prompt">λ </span>
+      <span class="text">Hi! I'm Hugo.</span>
+      <span class="empty-right"></span>
+    </span>
+    <p class="blurb">I'm a <a href="/about">software engineer.</a> I blog on this site and <a href="/portfolio">make software</a>. I do some <a href="categories/reverse-engineering/">reverse engineering, too</a>. Let's talk?</p>
+  </div>
   <h1 class="main-title">Posts</h1>
   <ul class="preview-ul">
     {{ range where .Site.RegularPages.ByPublishDate.Reverse ".Section" "article"}}

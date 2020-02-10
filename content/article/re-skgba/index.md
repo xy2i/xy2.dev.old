@@ -1,7 +1,7 @@
 +++
 title = "Reverse-engineering RNG in a GBA game"
 date = 2020-01-10T11:40:29+01:00
-categories = ["Software Engineering"]
+categories = ["Reverse Engineering"]
 tags = []
 draft = false
 

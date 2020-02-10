@@ -1,0 +1,57 @@
+.post-list .who-am-i {
+  
+  .typewriter {
+    padding-top: 1rem;
+    display: grid;
+    grid-template-columns: 1fr max-content max-content 1fr;
+    grid-template-areas: 
+      "empty-left prompt text empty-right";
+      
+    /* We can't CSS-transition to width-auto.
+    * So adjust the width of the child by having a parent that's wide enough,
+    * and set the child to be max-content in the grid.
+    */
+    .empty-left {
+      grid-area: empty-left;
+    }
+    .empty-right {
+      grid-area: empty-right;
+    }
+    .prompt {
+      font-size: 32px;
+      font-family: 'Fira Code';
+      color: $secondary;
+      white-space: pre;
+    }
+
+    .text {
+      font-size: 32px;
+      font-family: 'Fira Code';
+      color: $primary;
+      font-weight: bold;
+      overflow: hidden; /* Ensures the content is not revealed until the animation */
+      border-right: .1em solid $primary; /* The typwriter cursor */
+      white-space: nowrap; /* Keeps the content on a single line */
+      animation: 
+        typing 1.25s steps(13, end),
+        blink-caret 1s step-end infinite;
+    }
+    
+    /* The typing effect */
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+    /* The typewriter cursor effect */
+    @keyframes blink-caret {
+      from, to { border-color: transparent }
+      50% { border-color: $primary; }
+    }
+  }
+
+  .blurb {
+    font-size: 24px;
+    font-family: 'Roboto Condensed';
+    margin: 1rem 0;
+  }
+}

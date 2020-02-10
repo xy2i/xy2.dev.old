@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Articles on xy2_</title>
-    <link>https://xy2.dev/article/</link>
-    <description>Recent content in Articles on xy2_</description>
+    <title>Reverse Engineering on xy2_</title>
+    <link>https://xy2.dev/categories/reverse-engineering/</link>
+    <description>Recent content in Reverse Engineering on xy2_</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 10 Jan 2020 11:40:29 +0100</lastBuildDate>
     
-	<atom:link href="https://xy2.dev/article/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://xy2.dev/categories/reverse-engineering/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -18,15 +18,6 @@
       
       <guid>https://xy2.dev/article/re-skgba/</guid>
       <description>Reverse-engineering a GBA game and making sense out of it. Cool animations inside!</description>
-    </item>
-    
-    <item>
-      <title>Writing HTML using Racket and X-expressions</title>
-      <link>https://xy2.dev/article/racket-blog/</link>
-      <pubDate>Mon, 18 Nov 2019 11:40:29 +0100</pubDate>
-      
-      <guid>https://xy2.dev/article/racket-blog/</guid>
-      <description>How I wrote a blog, using ideas from the 70s, in today&#39;s world.</description>
     </item>
     
   </channel>

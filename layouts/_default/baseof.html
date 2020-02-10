@@ -5,10 +5,6 @@
 </head>  
 <body>
   <div class="container">
-    <main class="main">
-     {{ block "main" . }}
-     {{ end }}
-    </main>
     <a class="sidebar" href="{{ .Site.BaseURL }}">
       <img class="sidebar-img" src="/img/leitmotif.png">
       <span class="sidebar-name">xy2_</span>
@@ -32,6 +28,10 @@
         {{ end }}
       </div>
     </nav>
+    <main class="main">
+     {{ block "main" . }}
+     {{ end }}
+    </main>
   </div>
   {{ template "_internal/google_analytics_async.html" . }}
 </body>

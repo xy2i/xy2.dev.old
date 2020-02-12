@@ -176,19 +176,19 @@ let fistBump = {
       }
 
       // Bounce: has the particle hit the floor?
-      if (p.y > height) {
-        p.y = height;
-        p.rotation = (p.rotation - 90) % 360;
+      if (p.y > height - p.radius) {
+        p.y = height - p.radius;
         p.yVel = - p.yVel * 0.85;
+        p.rotation = (p.rotation + 180) % 360;
       }
 
-      if (p.x > width) {
-        p.x = width;
-        p.rotation = (p.rotation - 90) % 360;
+      if (p.x > width - p.radius) {
+        p.x = width - p.radius;
+        p.rotation = (p.rotation + 270) % 360;
       }
-      if (p.x < 0) {
-        p.x = 0;
-        p.rotation = (p.rotation - 90) % 360;
+      if (p.x <= p.radius ) {
+        p.x = p.radius;
+        p.rotation = (p.rotation + 90) % 360;
       }
 
       ctx.beginPath();

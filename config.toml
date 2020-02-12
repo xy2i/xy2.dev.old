@@ -2,7 +2,7 @@ baseURL = "https://xy2.dev/"
 languageCode = "en-us"
 title = "xy2_"
 
-googleAnalytics = "UA-157500582-1 "
+googleAnalytics = "UA-157500582-1"
 # Other menu entries are defined in their own front-matter.
 
 [markup]

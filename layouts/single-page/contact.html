@@ -58,6 +58,12 @@ let fistBump = {
   // Pixel ratio.
   ratio: window.devicePixelRatio,
 
+  // Properties of the physics simulation.
+  s: {
+    friction: .99,
+    gravity: .09
+  },
+
   /* A list of particles. Updated by fireGlitterCannon,
    * and used by renderGlitterParticles to animate.
    */
@@ -131,11 +137,9 @@ let fistBump = {
         color: PARTICLE_COLOURS[Math.floor(Math.random() * PARTICLE_COLOURS.length)],
         rotation: rand(0, 360, true),
         speed: rand(4, 11),
-        friction: .99,
         fade: .025 * this.ratio,
         opacity: rand(150, 150, true),
         yVel: 0,
-        gravity: 0.09
       });
     }
   },
@@ -179,10 +183,10 @@ let fistBump = {
       p.x += (p.speed * Math.cos(p.rotation * Math.PI / 180)) * this.ratio;
       p.y += (p.speed * Math.sin(p.rotation * Math.PI / 180)) * this.ratio;
       p.opacity -= 0.005;
-      p.speed *= p.friction;
+      p.speed *= this.s.friction;
       p.radius -= p.fade;
-      
-      p.yVel += p.gravity;
+
+      p.yVel += this.s.gravity;
       p.y += p.yVel;
       
 

@@ -90,12 +90,8 @@ let fistBump = {
     // Fire from the center of the hand.
     const button = this.button;
     const font_height = parseInt(window.getComputedStyle(button).fontSize, 10);
-    console.log("offsetLeft", button.offsetLeft)
-    console.log("offsetWidth", button.offsetWidth / 2.0)
-    console.log("container offsetLeft", container.offsetLeft)
-    this.originX = (button.offsetLeft - (button.offsetWidth / 2.0)) - container.offsetLeft;
-    console.log(this.originX)
-    this.originY = (button.offsetTop - (button.offsetHeight / 2.0) - font_height / 2) - container.offsetTop;
+    this.originX = (button.offsetLeft + (button.offsetWidth / 2.0)) - container.offsetLeft;
+    this.originY = (button.offsetTop + (button.offsetHeight / 2.0) - font_height / 2) - container.offsetTop;
 
     // Determine the dimensions, ensuring it doesn't exceed screen bounds.
     const width = container.offsetWidth;
@@ -131,15 +127,15 @@ let fistBump = {
       this.particles.push({
         x: this.originX,
         y: this.originY + (Math.random() * 30 + 15),
-        radius: rand(3, 8) * this.ratio,
+        radius: rand(4, 8) * this.ratio,
         color: PARTICLE_COLOURS[Math.floor(Math.random() * PARTICLE_COLOURS.length)],
         rotation: rand(0, 360, true),
-        speed: rand(4, 13),
+        speed: rand(4, 11),
         friction: .99,
         fade: .025 * this.ratio,
         opacity: rand(150, 150, true),
         yVel: 0,
-        gravity: 0.18
+        gravity: 0.09
       });
     }
   },
@@ -159,36 +155,42 @@ let fistBump = {
      * which adds particles, the animation will change, too.
      */
     this.particles.forEach((p, i) => {
+      // Bounce: has the particle hit the floor?
+      if (p.y > height - p.radius) {
+        p.y = height - p.radius;
+        p.rotation = (- p.rotation) % 360;
+        p.yVel = - p.yVel * 0.75;
+        /* We don't need to change the rotation of the ball, since it still
+        * goes in the same "direction." Only changing the y velocity vector is needed.
+        */
+      }
+
+      // Right wall
+      if (p.x > width - p.radius) {
+        p.x = width - p.radius;
+        p.rotation = (180 - p.rotation) % 360;
+      }
+      // Left wall
+      if (p.x < p.radius) {
+        p.x = p.radius;
+        p.rotation = (180 - p.rotation) % 360;
+      }
+
       p.x += p.speed * Math.cos(p.rotation * Math.PI / 180);
       p.y += p.speed * Math.sin(p.rotation * Math.PI / 180);
-
       p.opacity -= 0.005;
       p.speed *= p.friction;
       p.radius -= p.fade;
+      
       p.yVel += p.gravity;
       p.y += p.yVel;
+      
 
       // If the particle is gone, remove it from our array.
       // This mutates the global array, too.
       if (p.opacity < 0 || p.radius < 0) {
         this.particles.splice(i, 1);
         return;
-      }
-
-      // Bounce: has the particle hit the floor?
-      if (p.y > height - p.radius) {
-        p.y = height - p.radius;
-        p.yVel = - p.yVel * 0.85;
-        p.rotation = (p.rotation + 180) % 360;
-      }
-
-      if (p.x > width - p.radius) {
-        p.x = width - p.radius;
-        p.rotation = (p.rotation + 270) % 360;
-      }
-      if (p.x <= p.radius ) {
-        p.x = p.radius;
-        p.rotation = (p.rotation + 90) % 360;
       }
 
       ctx.beginPath();

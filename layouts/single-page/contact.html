@@ -125,8 +125,8 @@ let fistBump = {
     // Generate the particles.
     for(let i = 0; i < NUM_PARTICLES; i++) {
       this.particles.push({
-        x: this.originX,
-        y: this.originY + (Math.random() * 30 + 15),
+        x: this.originX * this.ratio,
+        y: (this.originY + (Math.random() * 30 + 15)) * this.ratio,
         radius: rand(4, 8) * this.ratio,
         color: PARTICLE_COLOURS[Math.floor(Math.random() * PARTICLE_COLOURS.length)],
         rotation: rand(0, 360, true),
@@ -176,8 +176,8 @@ let fistBump = {
         p.rotation = (180 - p.rotation) % 360;
       }
 
-      p.x += p.speed * Math.cos(p.rotation * Math.PI / 180);
-      p.y += p.speed * Math.sin(p.rotation * Math.PI / 180);
+      p.x += (p.speed * Math.cos(p.rotation * Math.PI / 180)) * this.ratio;
+      p.y += (p.speed * Math.sin(p.rotation * Math.PI / 180)) * this.ratio;
       p.opacity -= 0.005;
       p.speed *= p.friction;
       p.radius -= p.fade;

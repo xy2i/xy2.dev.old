@@ -42,27 +42,27 @@
     // In the generated CSS, .chroma is the element with
     // a background.
     .highlight > .chroma {
+      position: relative;
       border-radius: $chroma-border-radius;
+      border-top: 2px solid $primary;
+      border-bottom: 1px solid $secondary;
+      border-left: 1px dashed $secondary;
+      border-right: 1px solid $dark-gray;
+      box-shadow: 3px 3px 3px $light-gray;
+      padding-left: 1rem;
     }
 
     .chroma {
       margin: 0;
 
-      // The table itself.
-      .lntable {
-        border-radius: $chroma-border-radius;
-        border-top: 2px solid $primary;
-        border-bottom: 1px solid $secondary;
-        border-right: 1px solid $dark-gray;
-        box-shadow: 3px 3px 3px $light-gray;
-      }
-
       // The block of line numbers.
       td:first-child {
         border-right: 1px dotted $primary;
-        padding-left: 1rem;
         padding-right: 0.25em;
         background-color: rgba($secondary, 0.4);
+        position: absolute;
+        left: 0;
+        padding-left: 1rem;
       }
       // Each line number.
       .lnt {
@@ -74,7 +74,8 @@
 
       // The code block.
       td:last-child {
-        padding-left: 1rem;
+        padding-left: 1.5rem; // Account for the position:absolute of line nos: add 1rem. Actual is 0.5
+        left: 1rem;
       }
 
       // Needed because of dumb chroma styling.
@@ -113,5 +114,45 @@
       display: block;
       margin: 0 auto;
     }
+  }
+
+  details {
+
+    > summary {
+      position: relative;
+      cursor: pointer;
+      border-bottom: 1px solid $primary;
+      list-style: none;
+      padding-left: 2.5rem;
+    }
+    > summary::-webkit-details-marker {
+      display: none;
+    }
+    > summary:before {
+      background: $primary; 
+      position: absolute;
+      border-radius: 4px 4px 8px 4px;
+      content: "++"; 
+      color: #fff;
+      display: inline-block;
+      font-size: 1.1rem;
+      font-family: "Fira Code";
+      margin: 0 -10px 0 0;
+      bottom: -10px;
+      left: 0;
+      text-align: center;
+      width: 2rem;
+    }
+  }
+  details[open] summary:before {
+    content: "--";
+  }
+  .aside-details {
+    color: $dark-gray;
+    font-size: 0.85rem;
+    padding-left: 2.5rem;
+  }
+  details[open] .aside-details {
+    padding-top: 40px
   }
 }

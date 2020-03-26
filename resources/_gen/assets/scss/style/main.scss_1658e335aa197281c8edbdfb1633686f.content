@@ -451,27 +451,31 @@
   .post .category:not(:first-child) {
     padding-right: 1em; }
   .post .content .highlight > .chroma {
-    border-radius: 0 0 3rem 0; }
+    position: relative;
+    border-radius: 0 0 3rem 0;
+    border-top: 2px solid #533633;
+    border-bottom: 1px solid #B4B881;
+    border-left: 1px dashed #B4B881;
+    border-right: 1px solid #433F3C;
+    box-shadow: 3px 3px 3px #DDD;
+    padding-left: 1rem; }
   .post .content .chroma {
     margin: 0; }
-    .post .content .chroma .lntable {
-      border-radius: 0 0 3rem 0;
-      border-top: 2px solid #533633;
-      border-bottom: 1px solid #B4B881;
-      border-right: 1px solid #433F3C;
-      box-shadow: 3px 3px 3px #DDD; }
     .post .content .chroma td:first-child {
       border-right: 1px dotted #533633;
-      padding-left: 1rem;
       padding-right: 0.25em;
-      background-color: rgba(180, 184, 129, 0.4); }
+      background-color: rgba(180, 184, 129, 0.4);
+      position: absolute;
+      left: 0;
+      padding-left: 1rem; }
     .post .content .chroma .lnt {
       padding: 0;
       margin: 0;
       color: black;
       background-color: rgba(180, 184, 129, 0.4); }
     .post .content .chroma td:last-child {
-      padding-left: 1rem; }
+      padding-left: 1.5rem;
+      left: 1rem; }
     .post .content .chroma code {
       font-family: "Fira Code";
       font-size: 0.85rem;
@@ -497,6 +501,36 @@
     height: auto;
     display: block;
     margin: 0 auto; }
+  .post details > summary {
+    position: relative;
+    cursor: pointer;
+    border-bottom: 1px solid #533633;
+    list-style: none;
+    padding-left: 2.5rem; }
+  .post details > summary::-webkit-details-marker {
+    display: none; }
+  .post details > summary:before {
+    background: #533633;
+    position: absolute;
+    border-radius: 4px 4px 8px 4px;
+    content: "++";
+    color: #fff;
+    display: inline-block;
+    font-size: 1.1rem;
+    font-family: "Fira Code";
+    margin: 0 -10px 0 0;
+    bottom: -10px;
+    left: 0;
+    text-align: center;
+    width: 2rem; }
+  .post details[open] summary:before {
+    content: "--"; }
+  .post .aside-details {
+    color: #433F3C;
+    font-size: 0.85rem;
+    padding-left: 2.5rem; }
+  .post details[open] .aside-details {
+    padding-top: 40px; }
 
 .post-list .who-am-i .typewriter {
   padding-top: 1rem;

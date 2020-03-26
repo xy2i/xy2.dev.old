@@ -4,9 +4,6 @@ title = "xy2_"
 
 googleAnalytics = "UA-157500582-1"
 
-# GitHub pages.
-publishDir = "docs"
-
 [markup]
   [markup.highlight]
     codeFences = true

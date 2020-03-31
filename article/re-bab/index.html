@@ -741,31 +741,23 @@ Although we can't learn how without a lot of effort, as Brave is closed source, 
 </span><span class=lnt>12
 </span><span class=lnt>13
 </span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
+</span><span class=hl><span class=lnt>15
+</span></span><span class=lnt>16
 </span><span class=lnt>17
 </span><span class=lnt>18
-</span><span class=hl><span class=lnt>19
-</span></span><span class=lnt>20
-</span><span class=lnt>21
+</span><span class=lnt>19
+</span><span class=hl><span class=lnt>20
+</span></span><span class=lnt>21
 </span><span class=lnt>22
 </span><span class=lnt>23
-</span><span class=hl><span class=lnt>24
-</span></span><span class=lnt>25
+</span><span class=lnt>24
+</span><span class=lnt>25
 </span><span class=lnt>26
 </span><span class=lnt>27
 </span><span class=lnt>28
 </span><span class=lnt>29
-</span><span class=lnt>30
-</span><span class=lnt>31
-</span><span class=lnt>32
-</span><span class=lnt>33
 </span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=k>if</span> <span class=p>(</span><span class=nx>aDefTwo</span> <span class=o>==</span> <span class=s1>&#39;yes&#39;</span><span class=p>)</span> <span class=p>{</span>
-    <span class=k>if</span> <span class=p>(</span><span class=o>!</span> <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>ranAlready</span><span class=p>)</span> <span class=p>{</span>
-        <span class=cm>/* Heuristic based blocking.
-</span><span class=cm>            Try to add a bunch of bait images to the document.
-</span><span class=cm>            If we succeed, there is an adblocker.
-</span><span class=cm>            This method has a false positive, so it is disabled. */</span>
+    <span class=k>if</span> <span class=p>(</span><span class=o>!</span> <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>ranAlready</span><span class=p>)</span> <span class=p>{</span><span class=err>/</span>
         <span class=kd>var</span> <span class=nx>favicons</span> <span class=o>=</span> <span class=p>[</span>
             <span class=s2>&#34;//www.google.com/adsense/start/images/favicon.ico&#34;</span><span class=p>,</span>
             <span class=s2>&#34;//www.gstatic.com/adx/doubleclick.ico&#34;</span><span class=p>,</span>

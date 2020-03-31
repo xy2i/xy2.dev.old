@@ -650,7 +650,7 @@ function check() {
         // and adblockDetected hasn't been set
         if (aDefOne == 'yes') {
             consolelog('case2: standard bait says ads are NOT blocked.');
-            var adsbygoogle = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js\u0000';
+            var adsbygoogle = '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
             if (scriptExists(adsbygoogle)) {
                 consolelog('case2: And Adsense pre-exists.');
                 if (adsbygoogleQuery.innerHTML.replace(/\s/g, '').length == 0) {
@@ -666,24 +666,24 @@ function check() {
 ```
 {{</details-code-block>}}
 
-Unfortunately, this method doesn't work at all because of the implementation of `scriptExists`. I'm not sure why it's done that way.
+The `scriptExists` implementation looks for a given script within the page. In this case, it will detect the Adsense script if it exists.[^reddit-correction]
 
 {{<details-code-block 
-summary="Trim all script URLs on the page to 15 characters, and compare them against the passed URL."
-aside="`src === href` will never trigger, because the trimmed URL will never be equal to the full URL."
+summary="Compare the passed script URL against all scripts currently on the page."
+aside="Both the compared URL and all the script's URL's are trimmed to 15 characters, though I'm not sure why."
 open=true
 >}}
 ``` js {hl_lines=[7]}
 function scriptExists(href) {
-        if (href) href = href.substr(href.length - 15); // ??
-        var scripts = document.getElementsByTagName('script');
-        for (var i = scripts.length; i--;) {
-            var src = String(scripts[i].src);
-            if (src) src = src.substr(src.length - 15); // ??
-            if (src === href) return true
-        };
-        return false
+    if (href) href = href.substr(href.length - 15);
+    var scripts = document.getElementsByTagName('script');
+    for (var i = scripts.length; i--;) {
+        var src = String(scripts[i].src);
+        if (src) src = src.substr(src.length - 15);
+        if (src === href) return true
     };
+    return false
+};
 ```
 {{</details-code-block>}}
 
@@ -881,6 +881,9 @@ By analysing BlockAdBlock's evolution over time, as well as various ad blocker's
 
 [^v1-bug-test]:
     The tests for v1, above, were made while fixing this bug in the v1 script.
+
+[^reddit-correction]:
+    Thanks to [McStroyer on Reddit](https://www.reddit.com/r/javascript/comments/fs9030/how_an_anti_adblocker_works_reverseengineering/fm18g9m?utm_source=share&utm_medium=web2x) for correcting me about this.
 
 <script src="/js/lib/d3.v5.min.js"></script>
 <script src="d3-map.js"></script>

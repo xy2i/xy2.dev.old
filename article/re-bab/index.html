@@ -1,0 +1,822 @@
+<!doctype html><html ⚡ lang=en><head><meta charset=utf-8><title>How an anti ad-blocker works: Reverse-engieering BlockAdBlock</title><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><link rel=stylesheet href=https://xy2.dev/custom/style.a018705e4705aa2eb14c9b5c2ae64166b1b7ecb258f07d59ab9ba51d23aeede1.css><link rel=stylesheet href=https://xy2.dev/article/re-bab/custom/style.css><meta name=description content="How I reversed an ad-blocker blocker and learned some history about ad-blocking."><meta name=keywords content="hugo elhaj-lahsen,hugo elhaj lahsen,xy2_,xy2,computer science,blog,functional programming,lisp,reverse engineering,reversing,data visualisation,data science,datavis,dataviz"><meta property="og:type" content="website"><meta property="og:title" content="How an anti ad-blocker works: Reverse-engieering BlockAdBlock"><meta property="og:url" content="https://xy2.dev/article/re-bab/"><meta property="og:site_name" content="How an anti ad-blocker works: Reverse-engieering BlockAdBlock"><meta property="og:description" content="How I reversed an ad-blocker blocker and learned some history about ad-blocking."><meta property="og:locale" content="en"><meta property="og:image" content="https://xy2.dev/apple-icon.png"><meta name=twitter:card content="summary"><meta name=twitter:image content="https://xy2.dev/apple-icon.png"><link rel=canonical href=https://xy2.dev/article/re-bab/><link rel="shortcut icon" href=/favicon.png><link href=https://xy2.dev/apple-icon.png rel=apple-touch-icon></head><body><div class=container><a class=sidebar href=https://xy2.dev/><img class=sidebar-img src=/img/leitmotif.png>
+<span class=sidebar-name>xy2_</span></a><nav class=about><div class=presentation-sm><a class=btn href=/about>About</a>
+<a class=btn href=/portfolio>Portfolio</a>
+<a class=btn href=/>Posts</a>
+<a class=btn href=/contact>Contact</a></div><div class=presentation-md><p class=about-title>about -></p><div><a class=btn href=/about>Hi! I'm Hugo.</a></div><p class=about-title>portfolio -></p><div><a class=btn href=/portfolio>I make software.</a></div><p class=about-title>posts -></p><div><a class=btn href=/>I write about it.</a></div><p class=about-title>contact -></p><div><a class=btn href=/contact>Let's talk!</a></div></div></nav><main class=main><div class=post><h1>How an anti ad-blocker works: Reverse-engieering BlockAdBlock</h1><div class=info><span class=date><i data-feather=clock></i>March 26, 2020</span><div class=categories><a class="category btn" href=https://xy2.dev/categories/reverse-engineering>Reverse Engineering</a></div></div><div class=content><p>If you've used an adblocker, you may have seen <a href=https://blockadblock.com/>BlockAdBlock</a>.
+This script detects your ad-blocker and disables website access until you deactivate your adblocker.
+But I found myself wondering how it worked.
+How does an anti ad-blocker detect adblockers?
+And how do adblockers react and block ad-block-blockers?</p><h2 id=reverse-engineering-through-time>Reverse-engineering through time</h2><p>The first thing I did was look at <a href=https://blockadblock.com/configure.php>their site</a>.
+BlockAdBlock offers a configurator that allows to specify how long to wait, and how the script even appeared, creating different <em>versions</em> of the script.</p><p>And this got me thinking about versions. What if I could not look at one version, but <strong>all</strong> of them? So I did. I went back in time, using the <strong><a href=https://archive.org/web/>Wayback Machine</a></strong>.
+After I downloaded all versions, I took a look and hashed them:</p><details><summary>The list of all BlockAdBlock versions, with <code>sha1sum</code>. <em><small>Click to unroll!</small></em></summary><div class=highlight><pre class=chroma><code class=language-plaintext data-lang=plaintext><span class=hl>6d5eafab2ca816ccd049ad8f796358c0a7a43cf3  20151007203811.js
+</span><span class=hl>065b4aa813b219abbce76ad20a3216b3481b11bb  20151113115955.js
+</span><span class=hl>d5dec97a775b2e563f3e4359e4f8f1c3645ba0e5  20160121132336.js
+</span><span class=hl>8add06cbb79bc25114bd7a2083067ceea9fbb354  20160318193101.js
+</span>8add06cbb79bc25114bd7a2083067ceea9fbb354  20160319042810.js
+8add06cbb79bc25114bd7a2083067ceea9fbb354  20160331051645.js
+8add06cbb79bc25114bd7a2083067ceea9fbb354  20160406061855.js
+8add06cbb79bc25114bd7a2083067ceea9fbb354  20160408025028.js
+<span class=hl>555637904dc9e4bfc6f08bdcae92f0ba0f443ebf  20160415083215.js
+</span><span class=hl>d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20161120215354.js
+</span>d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20170525201720.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20170606090847.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20170703211338.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20170707211652.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20170813090718.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20170915094808.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20171005180631.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20171019162109.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20171109101135.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20171127113945.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20171211042454.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20171227031408.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20180202000800.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20180412213253.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20180419060636.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20180530223228.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20180815042610.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20181029233809.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20181122190948.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20181122205748.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20190324081812.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20190420155244.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20190424200651.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20190903121933.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286  20200112084838.js
+</code></pre></div></details><aside class=aside-details>Only <em>six</em> payloads are different, and there are no updates in <strong>four</strong> years.</aside><p>There were six versions, and the last one is from 2016, although I still see sites using BlockAdBlock today.
+This is a huge win, because we can reverse the script once, then reverse each <abbr title="Difference between two files, here between our versions">diff</abbr>. We can see scrapped ideas and even leftover debug code.</p><p>You can find <a href=https://github.com/xy2iii/BlockAdBlock-reversed>each version on GitHub</a>.
+If you'd like to look at each diff, see <a href=https://github.com/xy2iii/bab-history>this repository</a> where each commit is a different version. <small>I'll include links to the source for each section of this reversing, don't worry.</small></p><h2 id=unpacking>Unpacking</h2><p>As we look at the code, we find that it is not minified, but instead packed by a <a href=http://dean.edwards.name/packer/>JS packer</a> by Dean Edwards.<sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup></p><details open><summary>Dean Edwards&rsquo; <a href=http://dean.edwards.name/packer/>packer</a> in BlockAdBlock: only an argument's name changes.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nb>eval</span><span class=p>(</span><span class=kd>function</span><span class=p>(</span><span class=nx>p</span><span class=p>,</span> <span class=nx>a</span><span class=p>,</span> <span class=nx>c</span><span class=p>,</span> <span class=nx>k</span><span class=p>,</span> <span class=nx>e</span><span class=p>,</span> <span class=nx>d</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>e</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=nx>c</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=p>(</span><span class=nx>c</span> <span class=o>&lt;</span> <span class=nx>a</span> <span class=o>?</span> <span class=s1>&#39;&#39;</span> <span class=o>:</span> <span class=nx>e</span><span class=p>(</span><span class=nb>parseInt</span><span class=p>(</span><span class=nx>c</span> <span class=o>/</span> <span class=nx>a</span><span class=p>)</span><span class=p>)</span><span class=p>)</span> <span class=o>+</span> <span class=p>(</span><span class=p>(</span><span class=nx>c</span> <span class=o>=</span> <span class=nx>c</span> <span class=o>%</span> <span class=nx>a</span><span class=p>)</span> <span class=o>&gt;</span> <span class=mi>35</span> <span class=o>?</span> <span class=nb>String</span><span class=p>.</span><span class=nx>fromCharCode</span><span class=p>(</span><span class=nx>c</span> <span class=o>+</span> <span class=mi>29</span><span class=p>)</span> <span class=o>:</span> <span class=nx>c</span><span class=p>.</span><span class=nx>toString</span><span class=p>(</span><span class=mi>36</span><span class=p>)</span><span class=p>)</span>
+    <span class=p>}</span><span class=p>;</span>
+    <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=s1>&#39;&#39;</span><span class=p>.</span><span class=nx>replace</span><span class=p>(</span><span class=sr>/^/</span><span class=p>,</span> <span class=nb>String</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>while</span> <span class=p>(</span><span class=nx>c</span><span class=o>--</span><span class=p>)</span> <span class=p>{</span>
+            <span class=nx>d</span><span class=p>[</span><span class=nx>e</span><span class=p>(</span><span class=nx>c</span><span class=p>)</span><span class=p>]</span> <span class=o>=</span> <span class=nx>k</span><span class=p>[</span><span class=nx>c</span><span class=p>]</span> <span class=o>||</span> <span class=nx>e</span><span class=p>(</span><span class=nx>c</span><span class=p>)</span>
+        <span class=p>}</span>
+        <span class=nx>k</span> <span class=o>=</span> <span class=p>[</span><span class=kd>function</span><span class=p>(</span><span class=nx>e</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=nx>d</span><span class=p>[</span><span class=nx>e</span><span class=p>]</span>
+        <span class=p>}</span><span class=p>]</span><span class=p>;</span>
+        <span class=nx>e</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=s1>&#39;\\w+&#39;</span>
+        <span class=p>}</span><span class=p>;</span>
+        <span class=nx>c</span> <span class=o>=</span> <span class=mi>1</span>
+    <span class=p>}</span><span class=p>;</span>
+    <span class=k>while</span> <span class=p>(</span><span class=nx>c</span><span class=o>--</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=p>(</span><span class=nx>k</span><span class=p>[</span><span class=nx>c</span><span class=p>]</span><span class=p>)</span> <span class=p>{</span>
+            <span class=nx>p</span> <span class=o>=</span> <span class=nx>p</span><span class=p>.</span><span class=nx>replace</span><span class=p>(</span><span class=k>new</span> <span class=nb>RegExp</span><span class=p>(</span><span class=s1>&#39;\\b&#39;</span> <span class=o>+</span> <span class=nx>e</span><span class=p>(</span><span class=nx>c</span><span class=p>)</span> <span class=o>+</span> <span class=s1>&#39;\\b&#39;</span><span class=p>,</span> <span class=s1>&#39;g&#39;</span><span class=p>)</span><span class=p>,</span> <span class=nx>k</span><span class=p>[</span><span class=nx>c</span><span class=p>]</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+    <span class=k>return</span> <span class=nx>p</span>
+<span class=p>}</span><span class=p>(</span><span class=s1>&#39;0.1(&#34;2 3 4 5 6 7 8\&#39;d. 9, h? a b c d e f g&#34;);i j=\&#39;a\&#39;+\&#39;k\&#39;+\&#39;e\&#39;+\&#39;l\&#39;+\&#39;n\&#39;+\&#39;m\&#39;+\&#39;e\&#39;;&#39;</span><span class=p>,</span><span class=mi>24</span><span class=p>,</span><span class=mi>24</span><span class=p>,</span>
+<span class=s1>&#39;console|log|This|code|will|get|unpacked|then|eval|Cool||||||||huh|let|you|w|s||o&#39;</span><span class=p>.</span><span class=nx>split</span><span class=p>(</span><span class=s1>&#39;|&#39;</span><span class=p>)</span><span class=p>,</span><span class=mi>0</span><span class=p>,</span><span class=p>{</span><span class=p>}</span><span class=p>)</span><span class=p>)</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>p,a,c,k,e,r becomes p,a,c,k,e,d. There is no other modification to the logic.</aside><p>Thankfully, we don't have to worry about this.
+The packer's weakness is that any code it unpacks must be passed to <code>eval()</code>.
+If we replace the <code>eval()</code> with something like <code>console.log()</code>, suddently we get the whole source code and the packer is defeated.<sup id=fnref:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup></p><p>Once we've done that for each version, we can examine each version, as well as the added features over the years.</p><div class=d3-map></div><h2 id=version-1----november-2015-initial-script>Version 1 (? - November 2015): initial script</h2><div class=github-code><i data-feather=github></i><a href=https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v1-reversed.js>Source code</a></div><p>We start by taking a look at <code>20151007203811.js</code>, around November 2015.<sup id=fnref:3><a href=#fn:3 class=footnote-ref role=doc-noteref>3</a></sup> Although this first version does very little adblock-blocking, it allows us to take a look at BlockAdBlock's architecture, without the cruft that accumulated over the years.</p><h3 id=architecture>Architecture</h3><p>In three sentences:</p><ul><li>BlockAdBlock is a closure returning an object with three functions:<ul><li><code>bab()</code>, which sets up bait most of the time, calling <code>check</code></li><li><code>check()</code>, which checks if the adblocker blocked the bait, calling <code>arm</code></li><li><code>arm()</code>, which creates the overlay.</li></ul></li><li>The entrypoint, <code>bab()</code>, is then fired after a set amount of time.</li><li>The three returned functions are generated with arguments from the closure, which are set in the <a href=https://blockadblock.com/configure.php>BlockAdBlock customizer</a>.</li></ul><details open><summary>The code is built around a closure, assigned to a global object with a random name.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=kd>var</span> <span class=nx>randomID</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span><span class=p>,</span>
+    <span class=nx>e</span> <span class=o>=</span> <span class=s1>&#39;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&#39;</span><span class=p>;</span>
+<span class=k>for</span> <span class=p>(</span><span class=kd>var</span> <span class=nx>i</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=nx>i</span> <span class=o>&lt;</span> <span class=mi>12</span><span class=p>;</span> <span class=nx>i</span><span class=o>++</span><span class=p>)</span> <span class=nx>randomID</span> <span class=o>+=</span> 
+    <span class=nx>e</span><span class=p>.</span><span class=nx>charAt</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=nx>e</span><span class=p>.</span><span class=nx>length</span><span class=p>)</span><span class=p>)</span><span class=p>;</span>
+<span class=kd>var</span> <span class=nx>setTimeoutDelay</span> <span class=o>=</span> <span class=mi>7</span><span class=p>;</span> <span class=c1>// Delay after which to call BlockAdBlock
+</span><span class=c1></span><span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=p>...</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>There is great care in the code to have most names generated randomly, so as to avoid static blocking.</aside><details open><summary>It returns a three-function object: <code>bab</code>, <code>check</code> and <code>arm</code>.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=p>(</span><span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+    <span class=kd>var</span> <span class=nx>eid</span> <span class=o>=</span> <span class=p>...</span>
+    <span class=k>return</span> <span class=p>{</span>
+        <span class=nx>bab</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>check</span><span class=p>,</span> <span class=nx>passed_eid</span><span class=p>)</span> <span class=p>{</span><span class=p>}</span><span class=p>,</span>
+        <span class=nx>check</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>checkPredicate</span><span class=p>,</span> <span class=nx>unused</span><span class=p>)</span> <span class=p>{</span><span class=p>}</span><span class=p>,</span>
+        <span class=nx>arm</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span><span class=p>}</span>
+    <span class=p>}</span>
+<span class=p>}</span><span class=p>)</span><span class=p>(</span><span class=p>)</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>bab, check and arm are my own names. All variables were minified, and some were intentionally obfuscated.</aside><details open><summary>The entrypoint, <code>bab()</code>, is called via <code>setTimeout()</code>.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nx>setTimeout</span><span class=p>(</span><span class=s1>&#39;window[\&#39;\&#39; + randomID + \&#39;\&#39;] \
+</span><span class=s1>.bab(window[\&#39;\&#39; + randomID + \&#39;\&#39;].check, \
+</span><span class=s1>     window[\&#39;\&#39; + randomID + \&#39;\&#39;].bab_elementid)&#39;</span><span class=p>,</span> <span class=nx>setTimeoutDelay</span> <span class=o>*</span> <span class=mi>1000</span><span class=p>)</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>bab_elementid is unused in all versions of the code. <code>setTimeout</code> is passed a string.</aside><p>The closure has outer variables. Two of them serve to keep state in the script:</p><ul><li><code>adblockDetected</code> is 1 if an adblocker is detected.</li><li><code>nagMode</code> is a customization option. If set, the script will only nag you once to disable your adblocker, rather than block access.</li></ul><details><summary>Other outer variables in the closure control apparence and behavior, set in the <a href=https://blockadblock.com/configure.php>customizer</a>.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=kd>var</span> <span class=nx>eid</span> <span class=o>=</span> <span class=s1>&#39; ad_box&#39;</span><span class=p>,</span> <span class=c1>// Name of the bait.
+</span><span class=c1></span>    <span class=nx>__u1</span> <span class=o>=</span> <span class=mi>1</span><span class=p>,</span> <span class=c1>// Unused.
+</span><span class=c1></span>
+    <span class=c1>// Colors for the blockadblock prompt.
+</span><span class=c1></span>    <span class=nx>overlayColor</span> <span class=o>=</span> <span class=s1>&#39;#EEEEEE&#39;</span><span class=p>,</span>
+    <span class=nx>textColor</span> <span class=o>=</span> <span class=s1>&#39;#777777&#39;</span><span class=p>,</span>
+    <span class=nx>buttonBackgroundColor</span> <span class=o>=</span> <span class=s1>&#39;#adb8ff&#39;</span><span class=p>,</span>
+    <span class=nx>buttonColor</span> <span class=o>=</span> <span class=s1>&#39;#FFFFFF&#39;</span><span class=p>,</span>
+
+    <span class=nx>__u2</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span><span class=p>,</span> <span class=c1>// Unused.
+</span><span class=c1></span>
+    <span class=c1>// Text to display when the blockadblock prompt is shown.
+</span><span class=c1></span>    <span class=nx>welcomeText</span> <span class=o>=</span> <span class=s1>&#39;Sorry for the interruption...&#39;</span><span class=p>,</span>
+    <span class=nx>primaryText</span> <span class=o>=</span> <span class=s1>&#39;It looks like you\&#39;re using an ad blocker. That\&#39;s okay.  Who doesn\&#39;t?&#39;</span><span class=p>,</span>
+    <span class=nx>subtextText</span> <span class=o>=</span> <span class=s1>&#39;But without advertising-income, we can\&#39;t keep making this site awesome.&#39;</span><span class=p>,</span>
+    <span class=nx>buttonText</span> <span class=o>=</span> <span class=s1>&#39;I understand, I have disabled my ad blocker.  Let me in!&#39;</span><span class=p>,</span>
+
+    <span class=c1>// If 1, adblock was detected.
+</span><span class=c1></span>    <span class=nx>adblockDetected</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span>
+    <span class=c1>// If 1, BlockAdBlock will only nag the visitor once, rather than block access.
+</span><span class=c1></span>    <span class=nx>nagMode</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span>
+
+    <span class=c1>// The blockadblock domain, reversed.
+</span><span class=c1></span>    <span class=nx>bab_domain</span> <span class=o>=</span> <span class=s1>&#39;moc.kcolbdakcolb&#39;</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>bab_domain is set here to try to obfuscate the BlockAdBlock domain.</aside><h3 id=bab-bait-ad-creation><code>bab</code>: bait ad creation</h3><p>BlockAdBlock's central detection method is by creating &ldquo;bait&rdquo; ad elements, that look like real ads.
+It then checks if the adblocker blocked them.</p><details open><summary>A bait is created: a fake div pretending to be an ad, but hidden out of view.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nx>bab</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>check</span><span class=p>,</span> <span class=nx>passed_eid</span><span class=p>)</span> <span class=p>{</span>
+    <span class=c1>// Wait for the document to be ready.
+</span><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=k>typeof</span> <span class=nb>document</span><span class=p>.</span><span class=nx>body</span> <span class=o>==</span> <span class=s1>&#39;undefined&#39;</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span>
+    <span class=p>}</span><span class=p>;</span>
+
+    <span class=kd>var</span> <span class=nx>delay</span> <span class=o>=</span> <span class=s1>&#39;0.1&#39;</span><span class=p>,</span> 
+        <span class=nx>passed_eid</span> <span class=o>=</span> <span class=nx>eid</span> <span class=o>?</span> <span class=nx>eid</span> <span class=o>:</span> <span class=s1>&#39;banner_ad&#39;</span><span class=p>,</span>
+        <span class=nx>bait</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>createElement</span><span class=p>(</span><span class=s1>&#39;DIV&#39;</span><span class=p>)</span><span class=p>;</span>
+        
+    <span class=nx>bait</span><span class=p>.</span><span class=nx>id</span> <span class=o>=</span> <span class=nx>passed_eid</span><span class=p>;</span>
+    <span class=nx>bait</span><span class=p>.</span><span class=nx>style</span><span class=p>.</span><span class=nx>position</span> <span class=o>=</span> <span class=s1>&#39;absolute&#39;</span><span class=p>;</span>
+    <span class=nx>bait</span><span class=p>.</span><span class=nx>style</span><span class=p>.</span><span class=nx>left</span> <span class=o>=</span> <span class=s1>&#39;-999px&#39;</span><span class=p>;</span>
+    <span class=nx>bait</span><span class=p>.</span><span class=nx>appendChild</span><span class=p>(</span><span class=nb>document</span><span class=p>.</span><span class=nx>createTextNode</span><span class=p>(</span><span class=s1>&#39; &#39;</span><span class=p>)</span><span class=p>)</span><span class=p>;</span>
+    <span class=nb>document</span><span class=p>.</span><span class=nx>body</span><span class=p>.</span><span class=nx>appendChild</span><span class=p>(</span><span class=nx>bait</span><span class=p>)</span><span class=p>;</span>
+    <span class=p>...</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>passed_eid is presumably to customise the id of the bait, but it's unused.</aside><details open><summary>Afterwards, <code>check</code> if the bait was removed by the adblocker.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js>    <span class=p>...</span>
+    <span class=nx>setTimeout</span><span class=p>(</span><span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=p>(</span><span class=nx>bait</span><span class=p>)</span> <span class=p>{</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>clientHeight</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>clientWidth</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>display</span> <span class=o>==</span> <span class=s1>&#39;hidden&#39;</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>visibility</span> <span class=o>==</span> <span class=s1>&#39;none&#39;</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>opacity</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>left</span> <span class=o>&lt;</span> <span class=mi>1000</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>top</span> <span class=o>&lt;</span> <span class=mi>1000</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+            <span class=nx>check</span><span class=p>(</span><span class=kc>true</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span><span class=p>,</span> <span class=mi>125</span><span class=p>)</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>If the bait doesn't exist anymore, then the element was removed (and we trigger the overlay).</aside><details open><summary><code>check</code> will trigger if the predicate was true, and trigger <code>arm</code>.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nx>check</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>checkPredicate</span><span class=p>,</span> <span class=nx>unused</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=p>(</span><span class=p>(</span><span class=nx>checkPredicate</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=nx>adblockDetected</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>adblockDetected</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+        <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>arm</span><span class=p>(</span><span class=p>)</span>
+    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span><span class=p>}</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>Because <code>check</code> triggers multiple times as seen above, <code>adblockDetected</code> is set on the first correct check, in order to avoid triggering <code>arm</code> multiple times.</aside><h3 id=nag-mode>Nag mode</h3><p>BlockAdBlock has an feature called &ldquo;nag mode&rdquo;: in this mode, BlockAdBlock will only tell you to remove your adblocker once, instead of blocking you on each visit.
+It does so by setting a <code>localStorage</code> item after the first visit.</p><p>If we could set this for every, could we bypass BlockAdBlock forever? Unfortunately, BlockAdBlock checks beforehand if the script has been configured to nag mode, so this won't work for default usage, which is to block every time.</p><details open><summary>The start of <code>arm</code>, checking for nag mode.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=hl><span class=lnt> 2
+</span></span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nx>arm</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+<span class=hl>    <span class=k>if</span> <span class=p>(</span><span class=nx>nagMode</span> <span class=o>==</span> <span class=mi>1</span><span class=p>)</span> <span class=p>{</span>
+</span>        <span class=kd>var</span> <span class=nx>babNag</span> <span class=o>=</span> <span class=nx>sessionStorage</span><span class=p>.</span><span class=nx>getItem</span><span class=p>(</span><span class=s1>&#39;babn&#39;</span><span class=p>)</span><span class=p>;</span>
+        <span class=k>if</span> <span class=p>(</span><span class=nx>babNag</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=kc>true</span> <span class=c1>// Stop the script.
+</span><span class=c1></span>        <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+            <span class=nx>sessionStorage</span><span class=p>.</span><span class=nx>setItem</span><span class=p>(</span><span class=s1>&#39;babn&#39;</span><span class=p>,</span> <span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>+</span> <span class=mi>1</span><span class=p>)</span> <span class=o>*</span> <span class=mi>1000</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span><span class=p>;</span>
+    <span class=p>...</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details><code>nagMode</code> is set by the customizer, and is 0 by default. :(</aside><h3 id=blocking-blockadblock-version-1>Blocking BlockAdBlock, version 1</h3><p>Adblockers work by using what's called filters: lines of code that can block network requests and hide elements on the page.
+By creating &ldquo;bait&rdquo; elements, BlockAdBlock triggers these filters on purpose.</p><p>With this simple defense, BlockAdBlock works against all major adblockers, like uBlock Origin, AdBlock Plus and Ghostery. To counter against this, we must write our own filter that's active only on BlockAdBlock-enhanced websites.</p><p><a href=https://help.eyeo.com/en/adblockplus/how-to-write-filters>Writing adblock filters</a> is a bit tricky.
+The kind of filter we need is a <strong><a href=https://help.eyeo.com/en/adblockplus/how-to-write-filters#content-filters>content filter</a></strong>, which blocks elements on the page generated after download. Since the bait ad has an id of <code>banner_ad</code>, we create an <a href=https://help.eyeo.com/en/adblockplus/how-to-write-filters#elemhide_basic>element hiding exception</a>, marked <code>#@#</code>, for all elements <code>#</code> with id <code>banner_ad</code>, and put it in our adblocker's custom filter list.</p><p>Putting it all together, we get:</p><details open><summary>Defeating BlockAdBlock, version 1.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-css data-lang=css><span class=nt>localhost</span><span class=err>#</span><span class=o>@</span><span class=err>#</span> <span class=p>#</span><span class=nn>banner_ad</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>I've used localhost for demonstration, which you can replace with your URL.</aside><p>This counters BlockAdBlock successfully. The solution may seem basic, but it got the job done for a long time in the <a href=https://github.com/reek/anti-adblock-killer/blob/master/anti-adblock-killer-filters.txt#L150>Anti-AdBlock-Killer filter list</a>.</p><h2 id=version-2-november-2015---january-2016-a-few-improvements>Version 2 (November 2015 - January 2016): a few improvements</h2><div class=github-code><i data-feather=github></i><a href=https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v2-reversed.js>Source code</a><a href=https://github.com/xy2iii/bab-history/commit/302e415b5d8d86d1749c6ea5d4b3a1d6fc995eb9#diff-f9901228d7dadbc695e79f98b44125e6>v1/v2 diff</a></div><h3 id=bait-ad-creation-less-bugs>Bait ad creation: less bugs</h3><p>There's a subtle bug in the first <a href=#bab-bait-ad-creation>bait ad creation</a> implementation above: the div that's created has no content, so it creates a 0 height by 0 width div.
+Later, the code checks if the div was removed if the height and width of the bait div was empty. But since the div had 0 height, BlockAdBlock would always trigger.<sup id=fnref:4><a href=#fn:4 class=footnote-ref role=doc-noteref>4</a></sup></p><details open><summary>Fixing the empty div bug.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nx>bab</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=p>...</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>bait</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>createElement</span><span class=p>(</span><span class=s1>&#39;DIV&#39;</span><span class=p>)</span><span class=p>;</span>
+    <span class=p>...</span>
+    <span class=nx>bait</span><span class=p>.</span><span class=nx>appendChild</span><span class=p>(</span><span class=nb>document</span><span class=p>.</span><span class=nx>createTextNode</span><span class=p>(</span><span class=s1>&#39;Â &#39;</span><span class=p>)</span><span class=p>)</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>A child div is created, with some content.</aside><h3 id=detection-via-fake-image-ads>Detection via fake image ads</h3><p>In this method, we create a fake image with a random name on <code>doubleclick.net</code>. Adblockers will block the image, thinking it to be an ad's image. However, this requires no change to block in our filter.</p><details open><summary>Creating a fake image ad.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nx>bab</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=p>...</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>bait</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>createElement</span><span class=p>(</span><span class=s1>&#39;DIV&#39;</span><span class=p>)</span><span class=p>;</span>
+    <span class=nx>bait</span><span class=p>.</span><span class=nx>innerHTML</span> <span class=o>=</span> <span class=s1>&#39;&lt;img src=&#34;http://doubleclick.net/&#39;</span> <span class=o>+</span> <span class=nx>randomStr</span><span class=p>(</span><span class=p>)</span> <span class=o>+</span> <span class=s1>&#39;.jpg&#34;&gt;&#39;</span><span class=p>;</span>
+    <span class=p>...</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details><code>randomStr()</code> creates a random-length string.</aside><p>The other notable difference is the use of a <code>setInterval</code> timer instead of just checking once if the trigger is set.
+It newly checks if the image ad still exists, and if its <code>src</code> attribute hasn't been modified, by checking the contents of the bait.</p><details open><summary>A new <code>setInterval</code>, and checking for the image's existence.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=hl><span class=lnt>10
+</span></span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js>    <span class=p>...</span>
+    <span class=nx>checkCallback</span> <span class=o>=</span> <span class=nx>setInterval</span><span class=p>(</span><span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=p>(</span><span class=nx>bait</span><span class=p>)</span> <span class=p>{</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>clientHeight</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>clientWidth</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>display</span> <span class=o>==</span> <span class=s1>&#39;hidden&#39;</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>visibility</span> <span class=o>==</span> <span class=s1>&#39;none&#39;</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nx>bait</span><span class=p>.</span><span class=nx>opacity</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span><span class=p>;</span>
+            <span class=k>try</span> <span class=p>{</span>
+<span class=hl>                <span class=nx>check</span><span class=p>(</span><span class=p>(</span><span class=nb>document</span><span class=p>.</span><span class=nx>getElementById</span><span class=p>(</span><span class=s1>&#39;banner_ad&#39;</span><span class=p>)</span><span class=p>.</span><span class=nx>innerHTML</span><span class=p>.</span><span class=nx>indexOf</span><span class=p>(</span><span class=s1>&#39;click&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=o>-</span><span class=mi>1</span><span class=p>)</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span>
+</span>            <span class=p>}</span> <span class=k>catch</span> <span class=p>(</span><span class=nx>e</span><span class=p>)</span> <span class=p>{</span><span class=p>}</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+            <span class=nx>check</span><span class=p>(</span><span class=kc>true</span><span class=p>,</span> <span class=nx>delay</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span><span class=p>,</span> <span class=mi>1000</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>Why <code>indexof('click')</code>? The image will look like this: src="double<strong>click</strong>.net/abcdefg.jpg&rdquo;, so we check if that substring still exists.</aside><h2 id=version-3-november-2015---march-2016-generalized-baiting>Version 3 (November 2015 - March 2016): generalized baiting</h2><div class=github-code><i data-feather=github></i><a href=https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v3-reversed.js>Source code</a><a href=https://github.com/xy2iii/bab-history/commit/0cf84eb57a702a78e29d8cf69022a94ad521284b#diff-f9901228d7dadbc695e79f98b44125e6>v2/v3 diff</a></div><h3 id=bait-ad-creation-randomized-ids>Bait ad creation: randomized IDs</h3><p>The only change in this version, though a significant one, is the appearance of randomized IDs for the bait ad.
+A new ID is taken from a list of ad IDs at page load, and is used for the bait ad, now placed in the middle of the page.</p><details><summary>The list of random bait IDs.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=kd>var</span> <span class=nx>baitIDs</span> <span class=o>=</span> <span class=p>[</span>
+  <span class=s2>&#34;ad-left&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;adBannerWrap&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-frame&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-header&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-img&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-inner&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-label&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-lb&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-footer&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-container&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-container-1&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;ad-container-2&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;Ad300x145&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;Ad300x250&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;Ad728x90&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdArea&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdFrame1&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdFrame2&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdFrame3&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdFrame4&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdLayer1&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdLayer2&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;Ads_google_01&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;Ads_google_02&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;Ads_google_03&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;Ads_google_04&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;DivAd&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;DivAd1&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;DivAd2&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;DivAd3&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;DivAdA&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;DivAdB&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;DivAdC&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdImage&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdDiv&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdBox160&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;AdContainer&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;glinkswrapper&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;adTeaser&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;banner_ad&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;adBanner&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;adbanner&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;adAd&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;bannerad&#34;</span><span class=p>,</span>
+  <span class=s2>&#34; ad_box&#34;</span><span class=p>,</span>
+  <span class=s2>&#34; ad_channel&#34;</span><span class=p>,</span>
+  <span class=s2>&#34; adserver&#34;</span><span class=p>,</span>
+  <span class=s2>&#34; bannerid&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;adslot&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;popupad&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;adsense&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;google_ad&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;outbrain-paid&#34;</span><span class=p>,</span>
+  <span class=s2>&#34;sponsored_link&#34;</span>
+<span class=p>]</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>A long list that demonstrates significant domain knowledge.</aside><details open><summary>Random ID generation.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js>    <span class=nx>randomBaitID</span> <span class=o>=</span> <span class=nx>baitIDs</span><span class=p>[</span> <span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=nx>baitIDs</span><span class=p>.</span><span class=nx>length</span><span class=p>)</span> <span class=p>]</span><span class=p>,</span>
+    <span class=p>...</span>
+    <span class=kd>var</span> <span class=nx>passed_eid</span> <span class=o>=</span> <span class=nx>randomBaitID</span><span class=p>;</span>
+    <span class=nx>bait</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>createElement</span><span class=p>(</span><span class=s1>&#39;DIV&#39;</span><span class=p>)</span><span class=p>;</span>    
+    <span class=nx>bait</span><span class=p>.</span><span class=nx>id</span> <span class=o>=</span> <span class=nx>passed_eid</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>As this runs on every load, the bait's ID will be different each time.</aside><h3 id=blocking-blockadblock-version-3-to-latest>Blocking BlockAdBlock, version 3 to latest</h3><p>BlockAdBlock uses the blind spot of adblockers: if the filter allows all the above IDs, then it also allows genuine ads to pass through.
+If you don't allow blocking the above IDs, then other filters which may use these IDs in their filters to target ads will not work anymore.</p><p>In a way, BlockAdBlock is <strong>forcing the adblocker to make itself useless</strong>.</p><p>In adblockers, we can run arbitrary JS before anything in the page runs. We could try to delete the BlockAdBlock object prematurely.
+But to do that, we need the name of the object BlockAdBlock is attached to, <a href=#architecture>which is randomized each run,</a> which would require running the code.</p><p>uBlock Origin took another approach. The code is ran by <code>eval</code>, so what if we could define our own <code>eval</code> function that would block execution if we detect BlockAdBlock? In JS the <code>Proxy</code> object can accomplish this: any property, affectation and method can be replaced for any object.</p><p>This could be bypassed by not <code>eval</code>ing the initial BlockAdBlock payload and using it directly, so we also proxy the entrypoint: the <code>setTimeout</code> call. Since setTimeout is passed a string and not a function, we check the string.</p><details open><summary>Defeating BlockAdBlock in <a href=https://github.com/gorhill/uBlock/blob/master/src/web_accessible_resources/nobab.js>uBlock Origin (src)</a>.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=kr>const</span> <span class=nx>signatures</span> <span class=o>=</span> <span class=p>[</span>
+    <span class=p>[</span> <span class=s1>&#39;blockadblock&#39;</span> <span class=p>]</span><span class=p>,</span>
+    <span class=p>[</span> <span class=s1>&#39;babasbm&#39;</span> <span class=p>]</span><span class=p>,</span>
+    <span class=p>[</span> <span class=sr>/getItem\(&#39;babn&#39;\)/</span> <span class=p>]</span><span class=p>,</span>
+    <span class=p>[</span>
+        <span class=s1>&#39;getElementById&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;String.fromCharCode&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;charAt&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;DOMContentLoaded&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;AdBlock&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;addEventListener&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;doScroll&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;fromCharCode&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;&lt;&lt;2|r&gt;&gt;4&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;sessionStorage&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;clientWidth&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;localStorage&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;Math&#39;</span><span class=p>,</span>
+        <span class=s1>&#39;random&#39;</span>
+    <span class=p>]</span><span class=p>,</span>
+<span class=p>]</span><span class=p>;</span>
+<span class=kr>const</span> <span class=nx>check</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=nx>s</span><span class=p>)</span> <span class=p>{</span>
+    <span class=c1>// check for signature 
+</span><span class=c1></span><span class=p>}</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>A list of signatures: identifying patterns of the code. <code>check</code> checks an eval'd string against these patterns.</aside><details open><summary><a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy>Proxying</a> the <code>eval</code> and <code>setTimeout</code> functions.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nb>window</span><span class=p>.</span><span class=nb>eval</span> <span class=o>=</span> <span class=k>new</span> <span class=nb>Proxy</span><span class=p>(</span><span class=nb>window</span><span class=p>.</span><span class=nb>eval</span><span class=p>,</span> <span class=p>{</span>
+    <span class=nx>apply</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>target</span><span class=p>,</span> <span class=nx>thisArg</span><span class=p>,</span> <span class=nx>args</span><span class=p>)</span> <span class=p>{</span>
+        <span class=kr>const</span> <span class=nx>a</span> <span class=o>=</span> <span class=nx>args</span><span class=p>[</span><span class=mi>0</span><span class=p>]</span><span class=p>;</span>
+        <span class=k>if</span> <span class=p>(</span> <span class=k>typeof</span> <span class=nx>a</span> <span class=o>!==</span> <span class=s1>&#39;string&#39;</span> <span class=o>||</span> <span class=o>!</span><span class=nx>check</span><span class=p>(</span><span class=nx>a</span><span class=p>)</span> <span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=nx>target</span><span class=p>.</span><span class=nx>apply</span><span class=p>(</span><span class=nx>thisArg</span><span class=p>,</span> <span class=nx>args</span><span class=p>)</span><span class=p>;</span>
+        <span class=p>}</span> 
+        <span class=c1>// BAB detected: clean up.
+</span><span class=c1></span>        <span class=k>if</span> <span class=p>(</span> <span class=nb>document</span><span class=p>.</span><span class=nx>body</span> <span class=p>)</span> <span class=p>{</span>
+            <span class=nb>document</span><span class=p>.</span><span class=nx>body</span><span class=p>.</span><span class=nx>style</span><span class=p>.</span><span class=nx>removeProperty</span><span class=p>(</span><span class=s1>&#39;visibility&#39;</span><span class=p>)</span><span class=p>;</span>
+        <span class=p>}</span>
+        <span class=kd>let</span> <span class=nx>el</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>getElementById</span><span class=p>(</span><span class=s1>&#39;babasbmsgx&#39;</span><span class=p>)</span><span class=p>;</span>
+        <span class=k>if</span> <span class=p>(</span> <span class=nx>el</span> <span class=p>)</span> <span class=p>{</span>
+            <span class=nx>el</span><span class=p>.</span><span class=nx>parentNode</span><span class=p>.</span><span class=nx>removeChild</span><span class=p>(</span><span class=nx>el</span><span class=p>)</span><span class=p>;</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+<span class=p>}</span><span class=p>)</span><span class=p>;</span>
+<span class=nb>window</span><span class=p>.</span><span class=nx>setTimeout</span> <span class=o>=</span> <span class=k>new</span> <span class=nb>Proxy</span><span class=p>(</span><span class=nb>window</span><span class=p>.</span><span class=nx>setTimeout</span><span class=p>,</span> <span class=p>{</span>
+    <span class=nx>apply</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>target</span><span class=p>,</span> <span class=nx>thisArg</span><span class=p>,</span> <span class=nx>args</span><span class=p>)</span> <span class=p>{</span>
+        <span class=kr>const</span> <span class=nx>a</span> <span class=o>=</span> <span class=nx>args</span><span class=p>[</span><span class=mi>0</span><span class=p>]</span><span class=p>;</span>
+        <span class=c1>// Check that the passed string is not the BAB entrypoint.
+</span><span class=c1></span>        <span class=k>if</span> <span class=p>(</span>
+            <span class=k>typeof</span> <span class=nx>a</span> <span class=o>!==</span> <span class=s1>&#39;string&#39;</span> <span class=o>||</span>
+            <span class=sr>/\.bab_elementid.$/</span><span class=p>.</span><span class=nx>test</span><span class=p>(</span><span class=nx>a</span><span class=p>)</span> <span class=o>===</span> <span class=kc>false</span>
+        <span class=p>)</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=nx>target</span><span class=p>.</span><span class=nx>apply</span><span class=p>(</span><span class=nx>thisArg</span><span class=p>,</span> <span class=nx>args</span><span class=p>)</span><span class=p>;</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+<span class=p>}</span><span class=p>)</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>If we are executing BlockAdBlock, then clean up.</aside><p>As we are now using a <a href=https://github.com/gorhill/uBlock/wiki/Static-filter-syntax#scriptlet-injection>scriptlet</a>, a custom piece of code ran by the adblocker, the filter changes slightly:</p><details open><summary>Defeating BlockAdBlock, all versions: the filter.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-css data-lang=css><span class=nt>localhost</span><span class=err>#</span><span class=err>#</span> <span class=o>+</span><span class=nt>js</span><span class=o>(</span><span class=nt>nobab</span><span class=o>)</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>This doesn't run by default on every site, for performance reasons, so specify it for each site with the script.</aside><h2 id=version-4-january-2016---april-2016-experimental-features>Version 4 (January 2016 - April 2016): experimental features</h2><div class=github-code><i data-feather=github></i><a href=https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v4-reversed.js>Source code</a><a href=https://github.com/xy2iii/bab-history/commit/a497819b713fa94ef7fa202c8fc1e9578cffe784#diff-f9901228d7dadbc695e79f98b44125e6>v3/v4 diff</a></div><p>The above detection method was made in <a href=https://github.com/uBlockOrigin/uAssets/blob/91f936dbaeaa681fab4d9259a818458db2200e74/assets/ublock/resources.txt#L493>January 2016, according to uBlock Origin commit history</a>, and has not changed in concept since its inception.
+BlockAdBlock never tried to work around this filter after its creation, by changing its code architecture. Instead, it continued development with more features. And when we go over to the BlockAdBlock page, we see an interesting tab: &ldquo;Need more anti-adblock power?".</p><picture>
+<source srcset=bab-advanced-detection.webp><img src=bab-advanced-detection.png alt="Advanced detection"></picture><p>Although those defenses are only available in a special tab, they are included in all scripts and executed by fittingly-named variables. In version 4, two are implemented:</p><ul><li><code>aDefOne</code>, the &ldquo;specific defense for AdSense sites&rdquo;.</li><li><code>aDefTwo</code>, the &ldquo;special element defense&rdquo;.</li></ul><h3 id=accidental-debug-comments>Accidental debug comments</h3><p>There's something I should mention before we go. When reversing this version, one function caught my eye:
+<details open><summary>A debug <code>console.log()</code> that's used in the code!</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=kd>function</span> <span class=nx>consolelog</span><span class=p>(</span><span class=nx>e</span><span class=p>)</span> <span class=p>{</span>
+    <span class=c1>// &#34;Dev mode&#34; check: developpers of BAB must set window.consolelog to 1.
+</span><span class=c1></span>    <span class=k>if</span> <span class=p>(</span><span class=nb>window</span><span class=p>.</span><span class=nx>consolelog</span> <span class=o>==</span> <span class=mi>1</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=nx>e</span><span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>This runs only if the global <code>consolelog</code> is set, like <code>window.consolelog = 1</code>.</aside></p><p>These debug comments are only available in this version of the code. If I hadn't been reversing each version, I never would have caught it. These comments provide valuable information on how the code works.</p><h3 id=advanced-defense-adsense>Advanced defense: AdSense</h3><p>All of these special defenses are put in <code>check</code> and not in <code>arm</code>, like the architecture would suggest.
+This would suggest a change of developer that was perhaps unfamiliar with the codebase.</p><p>If AdSense is active on the page, we check that the ads which are supposed to be there still exist. If they're gone because of the adblocker, then BlockAdBlock activates.</p><details open><summary>A clever defense: check if existing ads, created by AdSense, are gone.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=hl><span class=lnt>13
+</span></span><span class=lnt>14
+</span><span class=hl><span class=lnt>15
+</span></span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=kd>function</span> <span class=nx>check</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+    <span class=p>...</span>
+    <span class=kd>var</span> <span class=nx>q</span> <span class=o>=</span> <span class=s1>&#39;ins.adsbygoogle&#39;</span><span class=p>,</span>
+        <span class=c1>// Selects all Google ads in the document.
+</span><span class=c1></span>        <span class=nx>adsbygoogleQuery</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>querySelector</span><span class=p>(</span><span class=nx>q</span><span class=p>)</span><span class=p>;</span>
+
+    <span class=k>if</span> <span class=p>(</span><span class=p>(</span><span class=nx>adsbygoogleQuery</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=nx>adblockDetected</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+        <span class=c1>// Ads are not blocked, since the bait ad is still there,
+</span><span class=c1></span>        <span class=c1>// and adblockDetected hasn&#39;t been set
+</span><span class=c1></span>        <span class=k>if</span> <span class=p>(</span><span class=nx>aDefOne</span> <span class=o>==</span> <span class=s1>&#39;yes&#39;</span><span class=p>)</span> <span class=p>{</span>
+            <span class=nx>consolelog</span><span class=p>(</span><span class=s1>&#39;case2: standard bait says ads are NOT blocked.&#39;</span><span class=p>)</span><span class=p>;</span>
+            <span class=kd>var</span> <span class=nx>adsbygoogle</span> <span class=o>=</span> <span class=s1>&#39;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js\u0000&#39;</span><span class=p>;</span>
+<span class=hl>            <span class=k>if</span> <span class=p>(</span><span class=nx>scriptExists</span><span class=p>(</span><span class=nx>adsbygoogle</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+</span>                <span class=nx>consolelog</span><span class=p>(</span><span class=s1>&#39;case2: And Adsense pre-exists.&#39;</span><span class=p>)</span><span class=p>;</span>
+<span class=hl>                <span class=k>if</span> <span class=p>(</span><span class=nx>adsbygoogleQuery</span><span class=p>.</span><span class=nx>innerHTML</span><span class=p>.</span><span class=nx>replace</span><span class=p>(</span><span class=sr>/\s/g</span><span class=p>,</span> <span class=s1>&#39;&#39;</span><span class=p>)</span><span class=p>.</span><span class=nx>length</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
+</span>                    <span class=c1>// The ad&#39;s content was cleared, so...
+</span><span class=c1></span>                    <span class=nx>consolelog</span><span class=p>(</span><span class=s1>&#39;case2: Ads are blocked.&#39;</span><span class=p>)</span><span class=p>;</span>
+                    <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>arm</span><span class=p>(</span><span class=p>)</span>
+                <span class=p>}</span>
+            <span class=p>}</span>
+        <span class=p>}</span><span class=p>;</span>
+        <span class=nx>adblockDetected</span> <span class=o>=</span> <span class=mi>1</span>
+    <span class=p>}</span>
+    <span class=p>...</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details><code>scriptExists</code> will check the entire page for a script with the given URL.</aside><p>Unfortunately, this method doesn't work at all because of the implementation of <code>scriptExists</code>. I'm not sure why it's done that way.</p><details open><summary>Trim all script URLs on the page to 15 characters, and compare them against the passed URL.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=hl><span class=lnt> 7
+</span></span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=kd>function</span> <span class=nx>scriptExists</span><span class=p>(</span><span class=nx>href</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=p>(</span><span class=nx>href</span><span class=p>)</span> <span class=nx>href</span> <span class=o>=</span> <span class=nx>href</span><span class=p>.</span><span class=nx>substr</span><span class=p>(</span><span class=nx>href</span><span class=p>.</span><span class=nx>length</span> <span class=o>-</span> <span class=mi>15</span><span class=p>)</span><span class=p>;</span> <span class=c1>// ??
+</span><span class=c1></span>        <span class=kd>var</span> <span class=nx>scripts</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>getElementsByTagName</span><span class=p>(</span><span class=s1>&#39;script&#39;</span><span class=p>)</span><span class=p>;</span>
+        <span class=k>for</span> <span class=p>(</span><span class=kd>var</span> <span class=nx>i</span> <span class=o>=</span> <span class=nx>scripts</span><span class=p>.</span><span class=nx>length</span><span class=p>;</span> <span class=nx>i</span><span class=o>--</span><span class=p>;</span><span class=p>)</span> <span class=p>{</span>
+            <span class=kd>var</span> <span class=nx>src</span> <span class=o>=</span> <span class=nb>String</span><span class=p>(</span><span class=nx>scripts</span><span class=p>[</span><span class=nx>i</span><span class=p>]</span><span class=p>.</span><span class=nx>src</span><span class=p>)</span><span class=p>;</span>
+            <span class=k>if</span> <span class=p>(</span><span class=nx>src</span><span class=p>)</span> <span class=nx>src</span> <span class=o>=</span> <span class=nx>src</span><span class=p>.</span><span class=nx>substr</span><span class=p>(</span><span class=nx>src</span><span class=p>.</span><span class=nx>length</span> <span class=o>-</span> <span class=mi>15</span><span class=p>)</span><span class=p>;</span> <span class=c1>// ??
+</span><span class=hl><span class=c1></span>            <span class=k>if</span> <span class=p>(</span><span class=nx>src</span> <span class=o>===</span> <span class=nx>href</span><span class=p>)</span> <span class=k>return</span> <span class=kc>true</span>
+</span>        <span class=p>}</span><span class=p>;</span>
+        <span class=k>return</span> <span class=kc>false</span>
+    <span class=p>}</span><span class=p>;</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details><code>src === href</code> will never trigger, because the trimmed URL will never be equal to the full URL.</aside><h3 id=advanced-defense-special-element-defense>Advanced defense: Special element defense</h3><p>This method, unlike the first one, has a disclaimer: <em>&ldquo;Please test after installation to ensure compatibility with your site."</em> To contextualize where we are in the code, let's look at <code>check</code>:</p><details open><summary>This special defense only triggers if adblock wasn't detected and there is no AdSense script on the page.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=hl><span class=lnt>13
+</span></span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=nx>check</span><span class=o>:</span> <span class=kd>function</span><span class=p>(</span><span class=nx>checkPredicate</span><span class=p>,</span> <span class=nx>unused</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=p>(</span><span class=p>(</span><span class=nx>checkPredicate</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=nx>adblockDetected</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+        <span class=c1>// Adblocker detected, arm
+</span><span class=c1></span>    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+        <span class=kd>var</span> <span class=nx>q</span> <span class=o>=</span> <span class=s1>&#39;ins.adsbygoogle&#39;</span><span class=p>,</span>
+            <span class=nx>adsbygoogleQuery</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>querySelector</span><span class=p>(</span><span class=nx>q</span><span class=p>)</span><span class=p>;</span>
+
+        <span class=k>if</span> <span class=p>(</span><span class=p>(</span><span class=nx>adsbygoogleQuery</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=nx>adblockDetected</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+            <span class=k>if</span> <span class=p>(</span><span class=nx>aDefOne</span> <span class=o>==</span> <span class=s1>&#39;yes&#39;</span><span class=p>)</span> <span class=p>{</span>
+                <span class=c1>// Special defense one: AdSense defense (see above)
+</span><span class=c1></span>            <span class=p>}</span><span class=p>;</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
+<span class=hl>            <span class=k>if</span> <span class=p>(</span><span class=nx>adblockDetected</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
+</span>                <span class=k>if</span> <span class=p>(</span><span class=nx>aDefTwo</span> <span class=o>==</span> <span class=s1>&#39;yes&#39;</span><span class=p>)</span> <span class=p>{</span>
+                    <span class=c1>// Special defense two: Special element defense
+</span><span class=c1></span>                <span class=p>}</span>
+            <span class=p>}</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>This method assumes that owners will only be using AdSense to serve ads on their page: if the AdSense script doesn't exist, there must be something wrong.</aside><p>So why the disclaimer? This method tries to include the AdSense script. If it doens't load, it's likely the adblocker blocked the network request, so BlockAdBlock triggers.
+But this may mess up some web sites, hence the warning.</p><details open><summary>If we fail to load AdSense, trigger the overlay.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=hl><span class=lnt>10
+</span></span><span class=hl><span class=lnt>11
+</span></span><span class=hl><span class=lnt>12
+</span></span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=k>if</span> <span class=p>(</span><span class=nx>aDefTwo</span> <span class=o>==</span> <span class=s1>&#39;yes&#39;</span><span class=p>)</span> <span class=p>{</span>
+    <span class=cm>/* Add Google ad code to head.
+</span><span class=cm>        If it errors, the adblocker must have blocked the connection. */</span>
+    <span class=kd>var</span> <span class=nx>googleAdCode</span> <span class=o>=</span> <span class=s1>&#39;//static.doubleclick.net/instream/ad_status.js&#39;</span><span class=p>;</span>
+    <span class=nx>consolelog</span><span class=p>(</span><span class=s1>&#39;case3: standard bait says ads are NOT blocked. Maybe ???\
+</span><span class=s1>      No Adsense is found. Attempting to add Google ad code to head...&#39;</span><span class=p>)</span><span class=p>;</span>
+    <span class=kd>var</span> <span class=nx>script</span> <span class=o>=</span> <span class=nb>document</span><span class=p>.</span><span class=nx>createElement</span><span class=p>(</span><span class=s1>&#39;script&#39;</span><span class=p>)</span><span class=p>;</span>
+    <span class=nx>script</span><span class=p>.</span><span class=nx>setAttribute</span><span class=p>(</span><span class=s1>&#39;type&#39;</span><span class=p>,</span> <span class=s1>&#39;text/javascript&#39;</span><span class=p>)</span><span class=p>;</span>
+    <span class=nx>script</span><span class=p>.</span><span class=nx>setAttribute</span><span class=p>(</span><span class=s1>&#39;src&#39;</span><span class=p>,</span> <span class=nx>googleAdCode</span><span class=p>)</span><span class=p>;</span>
+<span class=hl>    <span class=nx>script</span><span class=p>.</span><span class=nx>onerror</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+</span><span class=hl>        <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>arm</span><span class=p>(</span><span class=p>)</span>
+</span><span class=hl>    <span class=p>}</span><span class=p>;</span>
+</span>    <span class=nx>adblockDetected</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+    <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=nx>scriptExists</span><span class=p>(</span><span class=nx>googleAdCode</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nb>document</span><span class=p>.</span><span class=nx>getElementsByTagName</span><span class=p>(</span><span class=s1>&#39;head&#39;</span><span class=p>)</span><span class=p>[</span><span class=mi>0</span><span class=p>]</span><span class=p>.</span><span class=nx>appendChild</span><span class=p>(</span><span class=nx>script</span><span class=p>)</span>
+    <span class=p>}</span><span class=p>;</span>
+    <span class=nx>adsbygoogleQuery</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+    <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>check</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details><code>onerror</code> fires upon a failure on at network level, like an adblocker blocking the request.</aside><p>And indeed, most adblockers fall for it and block the request.
+However, there's one adblocker that I haven't mentionned until this point. Let's talk about the <a href=https://brave.com/fr/>Brave browser</a>.</p><h3 id=brave-browsers-answer-to-blockadblock>Brave Browser's answer to BlockAdBlock</h3><p>Until now I've examined uBlock Origin's response against BlockAdBlock. And it works, but it needs a specific filter to be added for each site that has BlockAdBlock on it.
+Brave is impressive because it detects and circumvents BlockAdBlock directly on all versions, without any action needed.
+Although we can't learn how without a lot of effort, as Brave is closed source, we can examine how it counters the above defense if we look in DevTools.</p><p>Instead of blocking the <code>ad_status.js</code> request, it lets it through but loads a <strong>0-byte fake Google Ads instead</strong>. This clever trick fools BlockAdBlock, because <code>onerror</code> fires only if the network request fails.</p><picture>
+<source srcset=chromium-brave.webp><img src=chromium-brave.png alt="Chromium with adblocker & Brave vs BlockAdBlock: network requests"></picture><h2 id=version-5-march-2016---november-2016>Version 5 (March 2016 - November 2016)</h2><div class=github-code><i data-feather=github></i><a href=https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v5-reversed.js>Source code</a><a href=https://github.com/xy2iii/bab-history/commit/b20d45201125767d63f5718b44a47082847e49bf#diff-f9901228d7dadbc695e79f98b44125e6>v4/v5 diff</a></div><h3 id=advanced-defense-favicon-spam>Advanced defense: Favicon spam</h3><p>The only change of note in this version is that the second advanced defense was rewritten, but still holds the same basic principle: try network requests that will be blocked by the adblocker. This time, however, it tries to load favicons instead of AdSense.</p><p>Brave evades this detection in the same was as above. It loads the images correctly, but creates fake 1x1 images.</p><details open><summary>Favicon spam. <code>baitImages</code> generates bait images, too.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=hl><span class=lnt>19
+</span></span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=hl><span class=lnt>24
+</span></span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=k>if</span> <span class=p>(</span><span class=nx>aDefTwo</span> <span class=o>==</span> <span class=s1>&#39;yes&#39;</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=p>(</span><span class=o>!</span> <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>ranAlready</span><span class=p>)</span> <span class=p>{</span>
+        <span class=cm>/* Heuristic based blocking.
+</span><span class=cm>            Try to add a bunch of bait images to the document.
+</span><span class=cm>            If we succeed, there is an adblocker.
+</span><span class=cm>            This method has a false positive, so it is disabled. */</span>
+        <span class=kd>var</span> <span class=nx>favicons</span> <span class=o>=</span> <span class=p>[</span>
+            <span class=s2>&#34;//www.google.com/adsense/start/images/favicon.ico&#34;</span><span class=p>,</span>
+            <span class=s2>&#34;//www.gstatic.com/adx/doubleclick.ico&#34;</span><span class=p>,</span>
+            <span class=s2>&#34;//advertising.yahoo.com/favicon.ico&#34;</span><span class=p>,</span>
+            <span class=s2>&#34;//ads.twitter.com/favicon.ico&#34;</span><span class=p>,</span>
+            <span class=s2>&#34;//www.doubleclickbygoogle.com/favicon.ico&#34;</span>
+            <span class=p>]</span><span class=p>,</span>
+            <span class=nx>len</span> <span class=o>=</span> <span class=nx>favicons</span><span class=p>.</span><span class=nx>length</span><span class=p>,</span>
+            <span class=nx>img</span> <span class=o>=</span> <span class=nx>favicons</span><span class=p>[</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=nx>len</span><span class=p>)</span><span class=p>]</span><span class=p>,</span>
+        <span class=p>...</span>
+        <span class=nx>baitImages</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=mi>2</span><span class=p>)</span> <span class=o>+</span> <span class=mi>1</span><span class=p>)</span><span class=p>;</span> <span class=c1>// creates bait images
+</span><span class=c1></span>        <span class=kd>var</span> <span class=nx>m</span> <span class=o>=</span> <span class=k>new</span> <span class=nx>Image</span><span class=p>(</span><span class=p>)</span><span class=p>;</span>
+<span class=hl>        <span class=nx>m</span><span class=p>.</span><span class=nx>onerror</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+</span>            <span class=nx>baitImages</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=mi>2</span><span class=p>)</span> <span class=o>+</span> <span class=mi>1</span><span class=p>)</span><span class=p>;</span>
+            <span class=nx>c</span><span class=p>.</span><span class=nx>src</span> <span class=o>=</span> <span class=nx>imgCopy</span><span class=p>;</span>
+            <span class=nx>baitImages</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=mi>2</span><span class=p>)</span> <span class=o>+</span> <span class=mi>1</span><span class=p>)</span>
+        <span class=p>}</span><span class=p>;</span>
+<span class=hl>        <span class=nx>c</span><span class=p>.</span><span class=nx>onerror</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+</span>            <span class=nx>adblockDetected</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+            <span class=nx>baitImages</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=mi>3</span><span class=p>)</span> <span class=o>+</span> <span class=mi>1</span><span class=p>)</span><span class=p>;</span>
+            <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>arm</span><span class=p>(</span><span class=p>)</span>
+        <span class=p>}</span><span class=p>;</span>
+        <span class=nx>m</span><span class=p>.</span><span class=nx>src</span> <span class=o>=</span> <span class=nx>img</span><span class=p>;</span>
+        <span class=nx>baitImages</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=mi>3</span><span class=p>)</span> <span class=o>+</span> <span class=mi>1</span><span class=p>)</span><span class=p>;</span>
+        <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>ranAlready</span> <span class=o>=</span> <span class=kc>true</span>
+    <span class=p>}</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details><code>baitImages</code> may be called so frequently, with a different, random amount of images, to throw off adblockers who want to block statically.</aside><h2 id=version-6-april-2016---november-2016-blocking-brave>Version 6 (April 2016 - November 2016): blocking Brave</h2><div class=github-code><i data-feather=github></i><a href=https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v6-reversed.js>Source code</a><a href=https://github.com/xy2iii/bab-history/commit/6ab4ad4272cfcd131013702e144476abf2d5101e#diff-f9901228d7dadbc695e79f98b44125e6>v5/v6 diff</a></div><p>So far BlockAdBlock's techniques, although simplistic at first, have grown in terms of complexity and detection rate.
+But there's still one enemy left unconquered: the Brave browser.</p><h3 id=advanced-defense-fake-favicon-detection>Advanced defense: Fake favicon detection</h3><p>Why did BlockAdBlock switch from trying to load a script to an image (a favicon)?
+The answer is this code, which is put inside the &ldquo;favicon spam&rdquo; defense and activates if the Brave defense is active.</p><details open><summary>Detecting Brave Browser: check the response for a fake image.</summary><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=hl><span class=lnt> 7
+</span></span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-js data-lang=js><span class=k>if</span> <span class=p>(</span><span class=nx>aDefTwo</span> <span class=o>==</span> <span class=s1>&#39;yes&#39;</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>baitImages</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>floor</span><span class=p>(</span><span class=nb>Math</span><span class=p>.</span><span class=nx>random</span><span class=p>(</span><span class=p>)</span> <span class=o>*</span> <span class=mi>3</span><span class=p>)</span> <span class=o>+</span> <span class=mi>1</span><span class=p>)</span><span class=p>;</span>
+    <span class=c1>// earlier favicon code...
+</span><span class=c1></span>    <span class=kd>var</span> <span class=nx>m</span> <span class=o>=</span> <span class=k>new</span> <span class=nx>Image</span><span class=p>(</span><span class=p>)</span><span class=p>;</span>
+    <span class=k>if</span> <span class=p>(</span><span class=p>(</span><span class=nx>aDefThree</span> <span class=o>%</span> <span class=mi>3</span><span class=p>)</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>m</span><span class=p>.</span><span class=nx>onload</span> <span class=o>=</span> <span class=kd>function</span><span class=p>(</span><span class=p>)</span> <span class=p>{</span>
+<span class=hl>            <span class=k>if</span> <span class=p>(</span><span class=p>(</span><span class=nx>m</span><span class=p>.</span><span class=nx>width</span> <span class=o>&lt;</span> <span class=mi>8</span><span class=p>)</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=nx>m</span><span class=p>.</span><span class=nx>width</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span><span class=p>)</span> <span class=p>{</span>
+</span>                <span class=nb>window</span><span class=p>[</span><span class=s1>&#39;&#39;</span> <span class=o>+</span> <span class=nx>randomID</span> <span class=o>+</span> <span class=s1>&#39;&#39;</span><span class=p>]</span><span class=p>.</span><span class=nx>arm</span><span class=p>(</span><span class=p>)</span>
+            <span class=p>}</span>
+        <span class=p>}</span>
+    <span class=p>}</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></td></tr></table></div></div></details><aside class=aside-details>Check the favicon's size. If it's less than 8x8, it was probably swapped out by Brave.</aside><p>With this method, Brave is defeated, and other adblockers will be detected if they run the code (most, like uBlock Origin, outright block it in the first place.)</p><p>After this update, around the end of November 2016, BlockAdBlock disappeared from the web. Although their &ldquo;advanced defense&rdquo; techniques work, they were never enabled for the majority of users. This was their last update, and their last post on both Twitter and their site was sometimes in late 2017</p><p>However, the legacy BlockAdBlock left is significant. And even though it can be trivially blocked nowadays, I still see BlockAdBlock used in today's sites.</p><h2 id=conclusion>Conclusion</h2><p>In the end, who will win the arms race between ad-blockers and ad-blockers-blockers? Only time can tell, but I think ad-blockers still have the advantage. As the arms race evolves, ad-blockers will have to use more and more contrived techniques and completely custom code, as watching BlockAdBlock's evolution over time hopefully shows.</p><p>On the other hand, blockers have the advantage of stable systems and powerful filtering tools via filter lists, and have access to JavaScript, too: with these systems, it only takes one person to figure out how to defeat the adblocker and update the filter list with new sites.</p><p>By analysing BlockAdBlock's evolution over time, as well as various ad blocker's responses, we managed to draw a picture of the small war between BlockAdBlock and ad blockers, and in the process learnt how ad-blockers-blockers block the ad-blockers.</p><p><a href=https://github.com/xy2iii/BlockAdBlock-reversed>You can find my reverse-engineering on GitHub</a>. Thank you for reading.</p><script src=/js/lib/d3.v5.min.js></script><script src=d3-map.js></script><section class=footnotes role=doc-endnotes><hr><ol><li id=fn:1 role=doc-endnote><p>If you want an intuition of how it works, try pasting the below example into a JS console and then look at the code. If you're interested in its inner workings, <a href=https://github.com/evanw/packer/blob/master/packer.js>here's the source code</a>. <a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:2 role=doc-endnote><p>Don't believe me? Try changing <code>eval</code> to <code>console.log</code> in the first line of the above example and you might find something hidden&mldr; <a href=#fnref:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:3 role=doc-endnote><p>The timestamp says <code>201510</code>, so shouldn't it be October? The reason for this is that we don't know when the script changed. All we know is:</p><ul><li>On 2015-10, there was one version saved: <code>20151007203811.js</code>.</li><li>On 2015-11, there was a new version: <code>20151113115955.js</code>.</li></ul><p>As far as we know, the script could have been changed the day before the second timestamp. As such, I err on the cautious side when timing the versions. <a href=#fnref:3 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:4 role=doc-endnote><p>The tests for v1, above, were made while fixing this bug in the v1 script. <a href=#fnref:4 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></section></div></div><script src=/js/copy-code.js></script><script src=/js/feather.min.js></script><script>feather.replace()</script></main></div><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-157500582-1','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

@@ -1,29 +1,35 @@
-name: github pages
+name: GitHub Pages
 
 on:
   push:
     branches:
       - master
+    paths:
+      - 'docs/**'
 
 jobs:
-  deploy:
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
+  build:
+    runs-on: ubuntu-latest
 
+    steps:
+      - uses: actions/checkout@v1
+      - name: Checkout
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.x
       - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
+        uses: peaceiris/actions-hugo@v2.2.1
         with:
           hugo-version: '0.62.2'
-          # extended: true
-
       - name: Build
         run: hugo --minify
-
+      - name: add nojekyll
+        run: touch ./docs/public/.nojekyll
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v2.4.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          emptyCommits: false
+        env:
+          ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          PUBLISH_BRANCH: gh-pages
+          PUBLISH_DIR: ./docs/public

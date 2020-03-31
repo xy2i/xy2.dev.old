@@ -463,7 +463,7 @@
     position: relative; }
   .post .content .chroma {
     margin: 0;
-    font-family: "Fira Code";
+    font-family: Fira Code;
     font-size: 0.85rem;
     overflow-x: auto; }
     .post .content .chroma td:first-child {
@@ -487,12 +487,14 @@
         that padding would mess up.
         But if we only have one <code> block (no linenos) then this will never apply.
         */
-      margin: 0; }
+      margin: 0;
+      font-family: Fira Code; }
     .post .content .chroma code {
+      font-family: Fira Code;
       display: inline-block;
       margin-left: 1rem; }
   .post .content :not(pre):not(h1):not(h2):not(h3) > code {
-    font-family: "Fira Code";
+    font-family: Fira Code;
     font-size: 0.85rem;
     border: 1px solid #B4B881;
     padding: 0 0.25rem 0 0.25rem;

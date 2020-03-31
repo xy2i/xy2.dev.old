@@ -57,7 +57,7 @@
 
     .chroma {
       margin: 0;
-      font-family: "Fira Code";
+      font-family: Fira Code;
       font-size: 0.85rem;
       overflow-x: auto;
 
@@ -92,6 +92,7 @@
       }
       // The code block for actual code, with linenos.
       code {
+        font-family: Fira Code;
         display: inline-block;
         margin-left: 1rem;
       }
@@ -99,7 +100,7 @@
 
     // Single code block styling.
     :not(pre):not(h1):not(h2):not(h3) > code {
-      font-family: "Fira Code";
+      font-family: Fira Code;
       font-size: 0.85rem;
       border: 1px solid $secondary;
       padding: 0 0.25rem 0 0.25rem;

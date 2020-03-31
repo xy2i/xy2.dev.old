@@ -784,13 +784,9 @@ summary="Favicon spam. `baitImages` generates bait images, too."
 aside="`baitImages` may be called so frequently, with a different, random amount of images, to throw off adblockers who want to block statically."
 open=true
 >}}
-``` js {hl_lines=[19,24]}
+``` js {hl_lines=[15,20]}
 if (aDefTwo == 'yes') {
-    if (! window['' + randomID + ''].ranAlready) {
-        /* Heuristic based blocking.
-            Try to add a bunch of bait images to the document.
-            If we succeed, there is an adblocker.
-            This method has a false positive, so it is disabled. */
+    if (! window['' + randomID + ''].ranAlready) {/
         var favicons = [
             "//www.google.com/adsense/start/images/favicon.ico",
             "//www.gstatic.com/adx/doubleclick.ico",

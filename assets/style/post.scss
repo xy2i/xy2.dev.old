@@ -15,13 +15,14 @@
   }
 
   .date {
+    display: flex;
     color: $secondary;
-    margin-right: 1em;
     font-family: Fira Code, monospace;
 
-    .feather {
-      width: 1rem;
-      height: auto;
+    > svg {
+      height: 1rem;
+      width: auto;
+      margin-right: 0.5rem;
     }
   }
 

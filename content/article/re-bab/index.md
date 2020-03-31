@@ -1,5 +1,5 @@
 +++
-title = "How an anti ad-blocker works: Reverse-engieering BlockAdBlock"
+title = "How an anti ad-blocker works: Reverse-engineering BlockAdBlock"
 date = 2020-03-26T08:49:10+01:00
 categories = ["Reverse Engineering"]
 tags = []

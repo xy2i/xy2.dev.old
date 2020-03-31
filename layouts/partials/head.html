@@ -17,9 +17,16 @@
 <meta property="og:site_name" content="{{ .Title }}">
 <meta property="og:description" content="{{ if .Params.summary }}{{ .Params.summary }}{{ end }}">
 <meta property="og:locale" content="en">
-<meta property="og:image" content="{{ "/apple-icon.png" | absURL }}">
+{{ with .Resources.ByType "image" }}
+    {{ range where . ".Name" "cover.webp" }}
+        <meta property="og:image" content="{{ .Permalink }}">
+        <meta name="twitter:image" content="{{ .Permalink }}">
+    {{ end }}
+{{ else }}
+    <meta property="og:image" content="{{ "/apple-icon.png" | absURL }}">
+    <meta name="twitter:image" content="{{ "/apple-icon.png" | absURL }}">
+{{ end }}
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="{{ "/apple-icon.png" | absURL }}">
 <link rel="canonical" href="{{ .Permalink }}">
 <link rel="shortcut icon" href="/favicon.png">
 <link href="{{ "/apple-icon.png" | absURL }}" rel="apple-touch-icon" />

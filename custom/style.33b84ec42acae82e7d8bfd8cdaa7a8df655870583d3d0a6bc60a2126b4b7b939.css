@@ -438,12 +438,13 @@
   .post h1 {
     margin-bottom: 0; }
   .post .date {
+    display: flex;
     color: #B4B881;
-    margin-right: 1em;
     font-family: Fira Code, monospace; }
-    .post .date .feather {
-      width: 1rem;
-      height: auto; }
+    .post .date > svg {
+      height: 1rem;
+      width: auto;
+      margin-right: 0.5rem; }
   .post .categories {
     display: flex; }
   .post .category {

@@ -88,7 +88,7 @@
         that padding would mess up.
         But if we only have one <code> block (no linenos) then this will never apply.
         */
-        margin: 0
+        margin: 0;
         font-family: Fira Code;
       }
       // The code block for actual code, with linenos.

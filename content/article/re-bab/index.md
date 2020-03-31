@@ -883,7 +883,7 @@ By analysing BlockAdBlock's evolution over time, as well as various ad blocker's
     The tests for v1, above, were made while fixing this bug in the v1 script.
 
 [^reddit-correction]:
-    Thanks to [McStroyer on Reddit](https://www.reddit.com/r/javascript/comments/fs9030/how_an_anti_adblocker_works_reverseengineering/fm18g9m?utm_source=share&utm_medium=web2x) for correcting me about this.
+    Thanks to [McStroyer on Reddit](https://www.reddit.com/r/javascript/comments/fs9030/how_an_anti_adblocker_works_reverseengineering/fm18g9m?utm_source=share&utm_medium=web2x) for pointing this out.
 
 <script src="/js/lib/d3.v5.min.js"></script>
 <script src="d3-map.js"></script>

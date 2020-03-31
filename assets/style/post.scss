@@ -49,20 +49,23 @@
       border-left: 1px dashed $secondary;
       border-right: 1px solid $dark-gray;
       box-shadow: 3px 3px 3px $light-gray;
-      padding-left: 1rem;
+    }
+    .highlight {
+      position: relative;
     }
 
     .chroma {
       margin: 0;
+      font-family: "Fira Code";
+      font-size: 0.85rem;
+      overflow-x: auto;
 
       // The block of line numbers.
       td:first-child {
         border-right: 1px dotted $primary;
         padding-right: 0.25em;
         background-color: rgba($secondary, 0.4);
-        position: absolute;
         left: 0;
-        padding-left: 1rem;
       }
       // Each line number.
       .lnt {
@@ -70,32 +73,33 @@
         margin: 0;
         color: black;
         background-color: rgba($secondary, 0.4);
+        padding-left: 1rem;
       }
 
-      // The code block.
-      td:last-child {
-        padding-left: 1.5rem; // Account for the position:absolute of line nos: add 1rem. Actual is 0.5
-        left: 1rem;
+      // The code block for line numbers.
+      td:first-child > .chroma > code {
+        /* In reality: this applies to two scenarios.
+        1. Without line numbers: a single <code>.
+        2. With line numbers: both <code> for line numbers AND the code itself.
+        If we let the below code declaration free with a padding, it will
+        apply to our line numbers too, and we don't want that
+        because we have a separate background-color on line numbers
+        that padding would mess up.
+        But if we only have one <code> block (no linenos) then this will never apply.
+        */
+        margin: 0
       }
-
-      // Needed because of dumb chroma styling.
+      // The code block for actual code, with linenos.
       code {
-        font-family: "Fira Code";
-        font-size: 0.85rem;
-        -moz-tab-size: 4;
-        tab-size: 4;
-      }
-      pre {
-        font-family: "Fira Code";
-        font-size: 0.85rem;
+        display: inline-block;
+        margin-left: 1rem;
       }
     }
 
     // Single code block styling.
-    p code {
+    :not(pre):not(h1):not(h2):not(h3) > code {
       font-family: "Fira Code";
       font-size: 0.85rem;
-      display: inline-block;
       border: 1px solid $secondary;
       padding: 0 0.25rem 0 0.25rem;
       border-radius: 3px;
@@ -109,7 +113,7 @@
     }
 
     img {
-      max-width: 100%;
+      max-width: 75%;
       height: auto;
       display: block;
       margin: 0 auto;
@@ -117,31 +121,45 @@
   }
 
   details {
-
+    position: relative;
     > summary {
-      position: relative;
+      padding-left: 2.5rem;
       cursor: pointer;
       border-bottom: 1px solid $primary;
       list-style: none;
-      padding-left: 2.5rem;
+      transition: border-color .5s cubic-bezier(.79,.14,.15,.86);
     }
     > summary::-webkit-details-marker {
       display: none;
     }
     > summary:before {
-      background: $primary; 
       position: absolute;
-      border-radius: 4px 4px 8px 4px;
-      content: "++"; 
-      color: #fff;
-      display: inline-block;
-      font-size: 1.1rem;
-      font-family: "Fira Code";
-      margin: 0 -10px 0 0;
-      bottom: -10px;
+      z-index: 1;
       left: 0;
+      top: 0.25rem;
+      border-radius: 0.25rem 0.25rem 0.5rem 0.25rem;
+      content: "++";
+      color: #fff;
+      font-size: 1.25rem;
+      font-family: "Fira Code";
+      margin: 0 1rem 0 0;
       text-align: center;
       width: 2rem;
+      background: $primary;
+      transform: translateX(0rem) translateY(0rem);
+      transition: transform .2s cubic-bezier(.79,.14,.15,.86),
+        background .5s ease-in-out;
+    }
+    > summary:hover {
+      border-color: $secondary;
+      transition: border-color .25s cubic-bezier(.79,.14,.15,.86);
+    }
+    > summary:hover::before {
+      background: $secondary;
+      transform: translateX(-0.5rem) translateY(0rem);
+      transition: transform .2s cubic-bezier(.79,.14,.15,.86), 
+        border-color .25s cubic-bezier(.79,.14,.15,.86),
+        background .5s ease-in-out;
     }
   }
   details[open] summary:before {
@@ -151,8 +169,39 @@
     color: $dark-gray;
     font-size: 0.85rem;
     padding-left: 2.5rem;
+    margin-bottom: 1rem;
   }
   details[open] .aside-details {
     padding-top: 40px
+  }
+
+  .copy-code-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    right: 0;
+    height: 1.25rem;
+    background: $primary;
+    border: none;
+    color: white;
+    z-index: 1;
+    // Style
+    border-radius: 0.25rem 0.25rem 0.25rem 1rem;
+    font-family: "Fira Code";
+    font-size: 0.85rem;
+    // Ease out
+    // Expotential transform
+    transition: transform .2s cubic-bezier(1,0,0,1);
+    transform: translateX(0rem) translateY(0rem);
+  }
+  .copy-code-button:hover {
+    background-color: $secondary;
+  }
+  // Feather icon.
+  .copy-code-button > svg {
+    height: 90%;
   }
 }

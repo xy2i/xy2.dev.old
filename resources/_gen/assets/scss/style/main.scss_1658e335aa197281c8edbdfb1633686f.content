@@ -457,37 +457,42 @@
     border-bottom: 1px solid #B4B881;
     border-left: 1px dashed #B4B881;
     border-right: 1px solid #433F3C;
-    box-shadow: 3px 3px 3px #DDD;
-    padding-left: 1rem; }
+    box-shadow: 3px 3px 3px #DDD; }
+  .post .content .highlight {
+    position: relative; }
   .post .content .chroma {
-    margin: 0; }
+    margin: 0;
+    font-family: "Fira Code";
+    font-size: 0.85rem;
+    overflow-x: auto; }
     .post .content .chroma td:first-child {
       border-right: 1px dotted #533633;
       padding-right: 0.25em;
       background-color: rgba(180, 184, 129, 0.4);
-      position: absolute;
-      left: 0;
-      padding-left: 1rem; }
+      left: 0; }
     .post .content .chroma .lnt {
       padding: 0;
       margin: 0;
       color: black;
-      background-color: rgba(180, 184, 129, 0.4); }
-    .post .content .chroma td:last-child {
-      padding-left: 1.5rem;
-      left: 1rem; }
+      background-color: rgba(180, 184, 129, 0.4);
+      padding-left: 1rem; }
+    .post .content .chroma td:first-child > .chroma > code {
+      /* In reality: this applies to two scenarios.
+        1. Without line numbers: a single <code>.
+        2. With line numbers: both <code> for line numbers AND the code itself.
+        If we let the below code declaration free with a padding, it will
+        apply to our line numbers too, and we don't want that
+        because we have a separate background-color on line numbers
+        that padding would mess up.
+        But if we only have one <code> block (no linenos) then this will never apply.
+        */
+      margin: 0; }
     .post .content .chroma code {
-      font-family: "Fira Code";
-      font-size: 0.85rem;
-      -moz-tab-size: 4;
-      tab-size: 4; }
-    .post .content .chroma pre {
-      font-family: "Fira Code";
-      font-size: 0.85rem; }
-  .post .content p code {
+      display: inline-block;
+      margin-left: 1rem; }
+  .post .content :not(pre):not(h1):not(h2):not(h3) > code {
     font-family: "Fira Code";
     font-size: 0.85rem;
-    display: inline-block;
     border: 1px solid #B4B881;
     padding: 0 0.25rem 0 0.25rem;
     border-radius: 3px;
@@ -497,40 +502,74 @@
     display: block;
     margin: 0 auto; }
   .post .content img {
-    max-width: 100%;
+    max-width: 75%;
     height: auto;
     display: block;
     margin: 0 auto; }
-  .post details > summary {
-    position: relative;
-    cursor: pointer;
-    border-bottom: 1px solid #533633;
-    list-style: none;
-    padding-left: 2.5rem; }
-  .post details > summary::-webkit-details-marker {
-    display: none; }
-  .post details > summary:before {
-    background: #533633;
-    position: absolute;
-    border-radius: 4px 4px 8px 4px;
-    content: "++";
-    color: #fff;
-    display: inline-block;
-    font-size: 1.1rem;
-    font-family: "Fira Code";
-    margin: 0 -10px 0 0;
-    bottom: -10px;
-    left: 0;
-    text-align: center;
-    width: 2rem; }
+  .post details {
+    position: relative; }
+    .post details > summary {
+      padding-left: 2.5rem;
+      cursor: pointer;
+      border-bottom: 1px solid #533633;
+      list-style: none;
+      transition: border-color 0.5s cubic-bezier(0.79, 0.14, 0.15, 0.86); }
+    .post details > summary::-webkit-details-marker {
+      display: none; }
+    .post details > summary:before {
+      position: absolute;
+      z-index: 1;
+      left: 0;
+      top: 0.25rem;
+      border-radius: 0.25rem 0.25rem 0.5rem 0.25rem;
+      content: "++";
+      color: #fff;
+      font-size: 1.25rem;
+      font-family: "Fira Code";
+      margin: 0 1rem 0 0;
+      text-align: center;
+      width: 2rem;
+      background: #533633;
+      transform: translateX(0rem) translateY(0rem);
+      transition: transform 0.2s cubic-bezier(0.79, 0.14, 0.15, 0.86), background 0.5s ease-in-out; }
+    .post details > summary:hover {
+      border-color: #B4B881;
+      transition: border-color 0.25s cubic-bezier(0.79, 0.14, 0.15, 0.86); }
+    .post details > summary:hover::before {
+      background: #B4B881;
+      transform: translateX(-0.5rem) translateY(0rem);
+      transition: transform 0.2s cubic-bezier(0.79, 0.14, 0.15, 0.86), border-color 0.25s cubic-bezier(0.79, 0.14, 0.15, 0.86), background 0.5s ease-in-out; }
   .post details[open] summary:before {
     content: "--"; }
   .post .aside-details {
     color: #433F3C;
     font-size: 0.85rem;
-    padding-left: 2.5rem; }
+    padding-left: 2.5rem;
+    margin-bottom: 1rem; }
   .post details[open] .aside-details {
     padding-top: 40px; }
+  .post .copy-code-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    right: 0;
+    height: 1.25rem;
+    background: #533633;
+    border: none;
+    color: white;
+    z-index: 1;
+    border-radius: 0.25rem 0.25rem 0.25rem 1rem;
+    font-family: "Fira Code";
+    font-size: 0.85rem;
+    transition: transform 0.2s cubic-bezier(1, 0, 0, 1);
+    transform: translateX(0rem) translateY(0rem); }
+  .post .copy-code-button:hover {
+    background-color: #B4B881; }
+  .post .copy-code-button > svg {
+    height: 90%; }
 
 .post-list .who-am-i .typewriter {
   padding-top: 1rem;
@@ -811,7 +850,6 @@ with some flavor text, aligned to the right.
   height: 100%;
   width: 100%;
   background: #B4B881;
-  z-index: -1;
   transform: translateX(0.25rem) translateY(0.25rem);
   transition: transform .05s linear; }
 
@@ -831,6 +869,7 @@ with some flavor text, aligned to the right.
   margin-bottom: 0.25rem; }
 
 h1 {
+  font-family: Roboto Condensed;
   font-size: 1.75rem;
   color: #533633;
   display: flex;
@@ -848,19 +887,42 @@ h1::after {
   box-shadow: 3px 3px 3px #DDD; }
 
 h2 {
+  font-family: Roboto Condensed;
   font-size: 1.3rem;
   color: #533633;
   display: flex; }
 
 h2::after {
   content: " ";
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   border-radius: 2px;
   margin-left: 0.25rem;
   background: linear-gradient(90deg, #533633 0%, rgba(180, 184, 129, 0.1) 100%);
   height: 1px;
   flex-grow: 1;
   align-self: flex-end; }
+
+h3 {
+  font-family: Roboto Condensed;
+  color: #533633;
+  display: flex; }
+
+h3::after {
+  content: " ";
+  margin-bottom: 5px;
+  border-radius: 2px;
+  margin-left: 0.25rem;
+  background: linear-gradient(90deg, rgba(83, 54, 51, 0.8) 0%, rgba(180, 184, 129, 0) 80%);
+  height: 1px;
+  flex-grow: 1;
+  align-self: flex-end; }
+
+h3 > code {
+  font-family: "Fira Code";
+  border: 1px solid #B4B881;
+  padding: 0 0.25rem 0 0.25rem;
+  border-radius: 3px;
+  background: white; }
 
 a {
   color: #533633; }

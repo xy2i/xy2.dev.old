@@ -1,15 +1,4 @@
-$md: 800px;
-$lg: 1000px;
-
-$primary: #D95E37;
-$secondary: #313854;
-// Couleur thé
-$primary: #533633; 
-$secondary: #B4B881;
-$light-gray: #DDD;
-$dark-gray: #433F3C;
-$light-white: white;
-
+@import '_global';
 @import 'font';
 @import 'post-list';
 @import 'post';
@@ -165,7 +154,6 @@ $btn-radius: 0.25rem 0.25rem 1rem 0.25rem;
   transition: background .05s linear;
 }
 .btn:hover::before {
-  // Position the item
   position: absolute;
   content: "";
   bottom: 0;
@@ -173,7 +161,6 @@ $btn-radius: 0.25rem 0.25rem 1rem 0.25rem;
   height: 100%;
   width: 100%;
   background: $secondary;
-  z-index: -1;
   transform: translateX(0.25rem) translateY(0.25rem);
   transition: transform .05s linear;
 }
@@ -206,6 +193,7 @@ $sm-h2-fs: 1.3rem;
 $md-h1-fs: 1.8rem;
 $md-h2-fs: 1.5rem;
 h1 {
+  font-family: Roboto Condensed;
   font-size: $sm-h1-fs;
   color: $primary;
   display: flex;
@@ -224,13 +212,14 @@ h1::after {
 }
 
 h2 {
+  font-family: Roboto Condensed;
   font-size: $sm-h2-fs;
   color: $primary;
   display: flex;
 }
 h2::after {
   content: " ";
-  margin-bottom:  8px;
+  margin-bottom: 6px;
   border-radius: 2px;
   margin-left: 0.25rem;
   background: linear-gradient(90deg, $primary 0%, rgba($secondary, 0.1) 100%);
@@ -238,7 +227,28 @@ h2::after {
   flex-grow: 1;
   align-self: flex-end;
 }
-
+h3 {
+  font-family: Roboto Condensed;
+  color: $primary;
+  display: flex;
+}
+h3::after {
+  content: " ";
+  margin-bottom: 5px;
+  border-radius: 2px;
+  margin-left: 0.25rem;
+  background: linear-gradient(90deg, rgba($primary, 0.8) 0%, rgba($secondary, 0) 80%);
+  height: 1px;
+  flex-grow: 1;
+  align-self: flex-end;
+}
+h3 > code {
+  font-family: "Fira Code";
+  border: 1px solid $secondary;
+  padding: 0 0.25rem 0 0.25rem;
+  border-radius: 3px;
+  background: white;
+}
 a {
   color: $primary;
 }

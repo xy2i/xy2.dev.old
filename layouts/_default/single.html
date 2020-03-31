@@ -21,6 +21,9 @@
         {{ .Content }}
     </div>
 </div>
+{{ if (findRE "<pre" .Content 1) }}
+    <script src="/js/copy-code.js"></script>
+{{ end }}
 <script src="/js/feather.min.js"></script>
 <script>
     feather.replace()

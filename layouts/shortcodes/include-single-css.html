@@ -1,0 +1,6 @@
+{{ if $.Page.Params.singleCSS }}
+{{ $style := ($.Page.Resources.GetMatch "css/main.scss") | toCSS (dict "enableSourceMap" true) }}
+<style>
+    {{ $style.Content | safeCSS }}
+</style>
+{{ end }}

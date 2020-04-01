@@ -854,7 +854,7 @@ if (aDefTwo == 'yes') {
 
 With this method, Brave is defeated, and other adblockers will be detected if they run the code (most, like uBlock Origin, outright block it in the first place.)
 
-After this update, around the end of November 2016, BlockAdBlock disappeared from the web. Although their "advanced defense" techniques work, they were never enabled for the majority of users. This was their last update, and their last post on both Twitter and their site was sometimes in late 2017
+After this update, around the end of November 2016, BlockAdBlock disappeared from the web. Although their "advanced defense" techniques work, they were never enabled for the majority of users. This was their last update, and their last post on both Twitter and their site was sometimes in late 2017.
 
 However, the legacy BlockAdBlock left is significant. And even though it can be trivially blocked nowadays, I still see BlockAdBlock used in today's sites.
 

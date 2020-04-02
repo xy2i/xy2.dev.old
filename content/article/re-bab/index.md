@@ -758,8 +758,7 @@ However, there's one adblocker that I haven't mentionned until this point. Let's
 ### Brave Browser's answer to BlockAdBlock
 
 Until now I've examined uBlock Origin's response against BlockAdBlock. And it works, but it needs a specific filter to be added for each site that has BlockAdBlock on it.
-Brave is impressive because it detects and circumvents BlockAdBlock directly on all versions, without any action needed.
-Although we can't learn how without a lot of effort, as Brave is closed source, we can examine how it counters the above defense if we look in DevTools.
+Brave is impressive because it detects and circumvents BlockAdBlock  on all versions, without any action needed. To do so, it spoofs the request directly at the network level.[^brave-src]
 
 Instead of blocking the `ad_status.js` request, it lets it through but loads a **0-byte fake Google Ads instead**. This clever trick fools BlockAdBlock, because `onerror` fires only if the network request fails.
 
@@ -884,6 +883,16 @@ By analysing BlockAdBlock's evolution over time, as well as various ad blocker's
 
 [^reddit-correction]:
     Thanks to [McStroyer on Reddit](https://www.reddit.com/r/javascript/comments/fs9030/how_an_anti_adblocker_works_reverseengineering/fm18g9m?utm_source=share&utm_medium=web2x) for pointing this out.
+
+[^brave-src]:
+    Brave's adblock component is open source, so we can peek at the source to get an intuition on how it works.
+    
+    * A method [ResourceTypeToString](https://github.com/brave/brave-core/blob/master/components/brave_shields/browser/ad_block_base_service.cc#L37) evalutates what kind of resource is intercepted.
+    * Brave's ad blocker, in [ShouldStartRequest](https://github.com/brave/brave-core/blob/master/components/brave_shields/browser/ad_block_base_service.cc#L120), checks if an intercepted resource [matches an adblock rule](https://github.com/brave/brave-core/blob/master/components/brave_shields/browser/ad_block_base_service.cc#L137).
+    * If it does, it then returns a [fake resource](https://github.com/brave/brave-core/blob/88d1bbf718795ae4ddbfe8eb9104c1a06abd52e4/browser/net/brave_ad_block_tp_network_delegate_helper.cc#L88) based on the earlier resource type, and makes the request "successful".
+
+    Thanks to [Francois Marier](https://fmarier.org/) for pointing out that Brave is open-source.
+
 
 <script src="/js/lib/d3.v5.min.js"></script>
 <script src="d3-map.js"></script>

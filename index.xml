@@ -1,1 +1,1676 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on xy2_</title><link>https://xy2.dev/</link><description>Recent content in Posts on xy2_</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 26 Mar 2020 08:49:10 +0100</lastBuildDate><atom:link href="https://xy2.dev/index.xml" rel="self" type="application/rss+xml"/><item><title>How an anti ad-blocker works: Reverse-engineering BlockAdBlock</title><link>https://xy2.dev/article/re-bab/</link><pubDate>Thu, 26 Mar 2020 08:49:10 +0100</pubDate><guid>https://xy2.dev/article/re-bab/</guid><description>How I reversed an ad-blocker blocker and learned some history about ad-blocking.</description></item><item><title>Reverse-engineering RNG in a GBA game</title><link>https://xy2.dev/article/re-skgba/</link><pubDate>Fri, 10 Jan 2020 11:40:29 +0100</pubDate><guid>https://xy2.dev/article/re-skgba/</guid><description>Reverse-engineering a GBA game and making sense out of it. Cool animations inside!</description></item><item><title>Writing HTML using Racket and X-expressions</title><link>https://xy2.dev/article/racket-blog/</link><pubDate>Mon, 18 Nov 2019 11:40:29 +0100</pubDate><guid>https://xy2.dev/article/racket-blog/</guid><description>How I wrote a blog, using ideas from the 70s, in today's world.</description></item><item><title>About me</title><link>https://xy2.dev/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://xy2.dev/about/</guid><description>A short description of who I am.</description></item><item><title>Contact</title><link>https://xy2.dev/contact/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://xy2.dev/contact/</guid><description>How to contact me.</description></item><item><title>Portfolio</title><link>https://xy2.dev/portfolio/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://xy2.dev/portfolio/</guid><description>The various things I've done.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on xy2_</title><link>https://xy2.dev/</link><description>Recent content in Posts on xy2_</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 26 Mar 2020 08:49:10 +0100</lastBuildDate><atom:link href="https://xy2.dev/index.xml" rel="self" type="application/rss+xml"/><item><title>How an anti ad-blocker works: Reverse-engineering BlockAdBlock</title><link>https://xy2.dev/article/re-bab/</link><pubDate>Thu, 26 Mar 2020 08:49:10 +0100</pubDate><guid>https://xy2.dev/article/re-bab/</guid><description>&lt;p>If you've used an adblocker, you may have seen &lt;a href="https://blockadblock.com/">BlockAdBlock&lt;/a>.
+This script detects your ad-blocker and disables website access until you deactivate your adblocker.
+But I found myself wondering how it worked.
+How does an anti ad-blocker detect adblockers?
+And how do adblockers react and block ad-block-blockers?&lt;/p>
+&lt;h2 id="reverse-engineering-through-time">Reverse-engineering through time&lt;/h2>
+&lt;p>The first thing I did was look at &lt;a href="https://blockadblock.com/configure.php">their site&lt;/a>.
+BlockAdBlock offers a configurator that allows to specify how long to wait, and how the script even appeared, creating different &lt;em>versions&lt;/em> of the script.&lt;/p>
+&lt;p>And this got me thinking about versions. What if I could not look at one version, but &lt;strong>all&lt;/strong> of them? So I did. I went back in time, using the &lt;strong>&lt;a href="https://archive.org/web/">Wayback Machine&lt;/a>&lt;/strong>.
+After I downloaded all versions, I took a look and hashed them:&lt;/p>
+&lt;details >
+&lt;summary>The list of all BlockAdBlock versions, with &lt;code>sha1sum&lt;/code>. &lt;em>&lt;small>Click to unroll!&lt;/small>&lt;/em>&lt;/summary>
+&lt;div class="highlight">&lt;pre class="chroma">&lt;code class="language-plaintext" data-lang="plaintext">&lt;span class="hl">6d5eafab2ca816ccd049ad8f796358c0a7a43cf3 20151007203811.js
+&lt;/span>&lt;span class="hl">065b4aa813b219abbce76ad20a3216b3481b11bb 20151113115955.js
+&lt;/span>&lt;span class="hl">d5dec97a775b2e563f3e4359e4f8f1c3645ba0e5 20160121132336.js
+&lt;/span>&lt;span class="hl">8add06cbb79bc25114bd7a2083067ceea9fbb354 20160318193101.js
+&lt;/span>8add06cbb79bc25114bd7a2083067ceea9fbb354 20160319042810.js
+8add06cbb79bc25114bd7a2083067ceea9fbb354 20160331051645.js
+8add06cbb79bc25114bd7a2083067ceea9fbb354 20160406061855.js
+8add06cbb79bc25114bd7a2083067ceea9fbb354 20160408025028.js
+&lt;span class="hl">555637904dc9e4bfc6f08bdcae92f0ba0f443ebf 20160415083215.js
+&lt;/span>&lt;span class="hl">d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20161120215354.js
+&lt;/span>d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20170525201720.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20170606090847.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20170703211338.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20170707211652.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20170813090718.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20170915094808.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20171005180631.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20171019162109.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20171109101135.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20171127113945.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20171211042454.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20171227031408.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20180202000800.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20180412213253.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20180419060636.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20180530223228.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20180815042610.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20181029233809.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20181122190948.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20181122205748.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20190324081812.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20190420155244.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20190424200651.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20190903121933.js
+d8986247cad3bbc2dd92c3a2a06ac1540da6b286 20200112084838.js
+&lt;/code>&lt;/pre>&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">Only &lt;em>six&lt;/em> payloads are different, and there are no updates in &lt;strong>four&lt;/strong> years.&lt;/aside>
+&lt;p>There were six versions, and the last one is from 2016, although I still see sites using BlockAdBlock today.
+This is a huge win, because we can reverse the script once, then reverse each &lt;abbr title="Difference between two files, here between our versions">diff&lt;/abbr>. We can see scrapped ideas and even leftover debug code.&lt;/p>
+&lt;p>You can find &lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed">each version on GitHub&lt;/a>.
+If you'd like to look at each diff, see &lt;a href="https://github.com/xy2iii/bab-history">this repository&lt;/a> where each commit is a different version. &lt;small>I'll include links to the source for each section of this reversing, don't worry.&lt;/small>&lt;/p>
+&lt;h2 id="unpacking">Unpacking&lt;/h2>
+&lt;p>As we look at the code, we find that it is not minified, but instead packed by a &lt;a href="http://dean.edwards.name/packer/">JS packer&lt;/a> by Dean Edwards.&lt;sup id="fnref:1">&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>&lt;/p>
+&lt;details open>
+&lt;summary>Dean Edwards&amp;rsquo; &lt;a href="http://dean.edwards.name/packer/">packer&lt;/a> in BlockAdBlock: only an argument's name changes.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nb">eval&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">p&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">c&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">k&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">e&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">d&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">e&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="nx">a&lt;/span> &lt;span class="o">?&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="nx">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">parseInt&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">c&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="nx">a&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">35&lt;/span> &lt;span class="o">?&lt;/span> &lt;span class="nb">String&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">fromCharCode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">29&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="nx">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">toString&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">36&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sr">/^/&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">String&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">while&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="o">--&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">d&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">k&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="nx">k&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="nx">d&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">e&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="s1">&amp;#39;\\w+&amp;#39;&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">c&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">while&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="o">--&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">k&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">p&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">p&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">new&lt;/span> &lt;span class="nb">RegExp&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;\\b&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">e&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;\\b&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;g&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">k&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">c&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="nx">p&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;0.1(&amp;#34;2 3 4 5 6 7 8\&amp;#39;d. 9, h? a b c d e f g&amp;#34;);i j=\&amp;#39;a\&amp;#39;+\&amp;#39;k\&amp;#39;+\&amp;#39;e\&amp;#39;+\&amp;#39;l\&amp;#39;+\&amp;#39;n\&amp;#39;+\&amp;#39;m\&amp;#39;+\&amp;#39;e\&amp;#39;;&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">24&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">24&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;console|log|This|code|will|get|unpacked|then|eval|Cool||||||||huh|let|you|w|s||o&amp;#39;&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">split&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;|&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">p,a,c,k,e,r becomes p,a,c,k,e,d. There is no other modification to the logic.&lt;/aside>
+&lt;p>Thankfully, we don't have to worry about this.
+The packer's weakness is that any code it unpacks must be passed to &lt;code>eval()&lt;/code>.
+If we replace the &lt;code>eval()&lt;/code> with something like &lt;code>console.log()&lt;/code>, suddently we get the whole source code and the packer is defeated.&lt;sup id="fnref:2">&lt;a href="#fn:2" class="footnote-ref" role="doc-noteref">2&lt;/a>&lt;/sup>&lt;/p>
+&lt;p>Once we've done that for each version, we can examine each version, as well as the added features over the years.&lt;/p>
+&lt;div class="d3-map">&lt;/div>
+&lt;h2 id="version-1----november-2015-initial-script">Version 1 (? - November 2015): initial script&lt;/h2>
+&lt;div class="github-code">
+&lt;i data-feather="github">&lt;/i>
+&lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v1-reversed.js">Source code&lt;/a>
+&lt;/div>
+&lt;p>We start by taking a look at &lt;code>20151007203811.js&lt;/code>, around November 2015.&lt;sup id="fnref:3">&lt;a href="#fn:3" class="footnote-ref" role="doc-noteref">3&lt;/a>&lt;/sup> Although this first version does very little adblock-blocking, it allows us to take a look at BlockAdBlock's architecture, without the cruft that accumulated over the years.&lt;/p>
+&lt;h3 id="architecture">Architecture&lt;/h3>
+&lt;p>In three sentences:&lt;/p>
+&lt;ul>
+&lt;li>BlockAdBlock is a closure returning an object with three functions:
+&lt;ul>
+&lt;li>&lt;code>bab()&lt;/code>, which sets up bait most of the time, calling &lt;code>check&lt;/code>&lt;/li>
+&lt;li>&lt;code>check()&lt;/code>, which checks if the adblocker blocked the bait, calling &lt;code>arm&lt;/code>&lt;/li>
+&lt;li>&lt;code>arm()&lt;/code>, which creates the overlay.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>The entrypoint, &lt;code>bab()&lt;/code>, is then fired after a set amount of time.&lt;/li>
+&lt;li>The three returned functions are generated with arguments from the closure, which are set in the &lt;a href="https://blockadblock.com/configure.php">BlockAdBlock customizer&lt;/a>.&lt;/li>
+&lt;/ul>
+&lt;details open>
+&lt;summary>The code is built around a closure, assigned to a global object with a random name.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="kd">var&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">e&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mi">12&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">++&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+=&lt;/span>
+&lt;span class="nx">e&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">charAt&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="nx">e&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">length&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">setTimeoutDelay&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">7&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// Delay after which to call BlockAdBlock
+&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">...&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">There is great care in the code to have most names generated randomly, so as to avoid static blocking.&lt;/aside>
+&lt;details open>
+&lt;summary>It returns a three-function object: &lt;code>bab&lt;/code>, &lt;code>check&lt;/code> and &lt;code>arm&lt;/code>.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">eid&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">...&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">bab&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">check&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">passed_eid&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">checkPredicate&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">unused&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">arm&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">bab, check and arm are my own names. All variables were minified, and some were intentionally obfuscated.&lt;/aside>
+&lt;details open>
+&lt;summary>The entrypoint, &lt;code>bab()&lt;/code>, is called via &lt;code>setTimeout()&lt;/code>.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nx">setTimeout&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;window[\&amp;#39;\&amp;#39; + randomID + \&amp;#39;\&amp;#39;] \
+&lt;/span>&lt;span class="s1">.bab(window[\&amp;#39;\&amp;#39; + randomID + \&amp;#39;\&amp;#39;].check, \
+&lt;/span>&lt;span class="s1"> window[\&amp;#39;\&amp;#39; + randomID + \&amp;#39;\&amp;#39;].bab_elementid)&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">setTimeoutDelay&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1000&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">bab_elementid is unused in all versions of the code. &lt;code>setTimeout&lt;/code> is passed a string.&lt;/aside>
+&lt;p>The closure has outer variables. Two of them serve to keep state in the script:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>adblockDetected&lt;/code> is 1 if an adblocker is detected.&lt;/li>
+&lt;li>&lt;code>nagMode&lt;/code> is a customization option. If set, the script will only nag you once to disable your adblocker, rather than block access.&lt;/li>
+&lt;/ul>
+&lt;details >
+&lt;summary>Other outer variables in the closure control apparence and behavior, set in the &lt;a href="https://blockadblock.com/configure.php">customizer&lt;/a>.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="kd">var&lt;/span> &lt;span class="nx">eid&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39; ad_box&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">// Name of the bait.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">__u1&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">// Unused.
+&lt;/span>&lt;span class="c1">&lt;/span>
+&lt;span class="c1">// Colors for the blockadblock prompt.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">overlayColor&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;#EEEEEE&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">textColor&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;#777777&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">buttonBackgroundColor&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;#adb8ff&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">buttonColor&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;#FFFFFF&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">__u2&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">// Unused.
+&lt;/span>&lt;span class="c1">&lt;/span>
+&lt;span class="c1">// Text to display when the blockadblock prompt is shown.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">welcomeText&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;Sorry for the interruption...&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">primaryText&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;It looks like you\&amp;#39;re using an ad blocker. That\&amp;#39;s okay. Who doesn\&amp;#39;t?&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">subtextText&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;But without advertising-income, we can\&amp;#39;t keep making this site awesome.&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">buttonText&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;I understand, I have disabled my ad blocker. Let me in!&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="c1">// If 1, adblock was detected.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="c1">// If 1, BlockAdBlock will only nag the visitor once, rather than block access.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">nagMode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="c1">// The blockadblock domain, reversed.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">bab_domain&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;moc.kcolbdakcolb&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">bab_domain is set here to try to obfuscate the BlockAdBlock domain.&lt;/aside>
+&lt;h3 id="bab-bait-ad-creation">&lt;code>bab&lt;/code>: bait ad creation&lt;/h3>
+&lt;p>BlockAdBlock's central detection method is by creating &amp;ldquo;bait&amp;rdquo; ad elements, that look like real ads.
+It then checks if the adblocker blocked them.&lt;/p>
+&lt;details open>
+&lt;summary>A bait is created: a fake div pretending to be an ad, but hidden out of view.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nx">bab&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">check&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">passed_eid&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="c1">// Wait for the document to be ready.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="k">typeof&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">body&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;undefined&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">delay&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;0.1&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">passed_eid&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">eid&lt;/span> &lt;span class="o">?&lt;/span> &lt;span class="nx">eid&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="s1">&amp;#39;banner_ad&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">bait&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">createElement&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;DIV&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">passed_eid&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">style&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">position&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;absolute&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">style&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">left&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;-999px&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">appendChild&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">createTextNode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39; &amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">body&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">appendChild&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">passed_eid is presumably to customise the id of the bait, but it's unused.&lt;/aside>
+&lt;details open>
+&lt;summary>Afterwards, &lt;code>check&lt;/code> if the bait was removed by the adblocker.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js"> &lt;span class="p">...&lt;/span>
+&lt;span class="nx">setTimeout&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">clientHeight&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">clientWidth&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">display&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;hidden&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">visibility&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;none&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">opacity&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">left&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mi">1000&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">top&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mi">1000&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">125&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">If the bait doesn't exist anymore, then the element was removed (and we trigger the overlay).&lt;/aside>
+&lt;details open>
+&lt;summary>&lt;code>check&lt;/code> will trigger if the predicate was true, and trigger &lt;code>arm&lt;/code>.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nx">check&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">checkPredicate&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">unused&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">checkPredicate&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arm&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">Because &lt;code>check&lt;/code> triggers multiple times as seen above, &lt;code>adblockDetected&lt;/code> is set on the first correct check, in order to avoid triggering &lt;code>arm&lt;/code> multiple times.&lt;/aside>
+&lt;h3 id="nag-mode">Nag mode&lt;/h3>
+&lt;p>BlockAdBlock has an feature called &amp;ldquo;nag mode&amp;rdquo;: in this mode, BlockAdBlock will only tell you to remove your adblocker once, instead of blocking you on each visit.
+It does so by setting a &lt;code>localStorage&lt;/code> item after the first visit.&lt;/p>
+&lt;p>If we could set this for every, could we bypass BlockAdBlock forever? Unfortunately, BlockAdBlock checks beforehand if the script has been configured to nag mode, so this won't work for default usage, which is to block every time.&lt;/p>
+&lt;details open>
+&lt;summary>The start of &lt;code>arm&lt;/code>, checking for nag mode.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 2
+&lt;/span>&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nx">arm&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="hl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">nagMode&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">babNag&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">sessionStorage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getItem&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;babn&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">babNag&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span> &lt;span class="c1">// Stop the script.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">sessionStorage&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">setItem&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;babn&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">1000&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">&lt;code>nagMode&lt;/code> is set by the customizer, and is 0 by default. :(&lt;/aside>
+&lt;h3 id="blocking-blockadblock-version-1">Blocking BlockAdBlock, version 1&lt;/h3>
+&lt;p>Adblockers work by using what's called filters: lines of code that can block network requests and hide elements on the page.
+By creating &amp;ldquo;bait&amp;rdquo; elements, BlockAdBlock triggers these filters on purpose.&lt;/p>
+&lt;p>With this simple defense, BlockAdBlock works against all major adblockers, like uBlock Origin, AdBlock Plus and Ghostery. To counter against this, we must write our own filter that's active only on BlockAdBlock-enhanced websites.&lt;/p>
+&lt;p>&lt;a href="https://help.eyeo.com/en/adblockplus/how-to-write-filters">Writing adblock filters&lt;/a> is a bit tricky.
+The kind of filter we need is a &lt;strong>&lt;a href="https://help.eyeo.com/en/adblockplus/how-to-write-filters#content-filters">content filter&lt;/a>&lt;/strong>, which blocks elements on the page generated after download. Since the bait ad has an id of &lt;code>banner_ad&lt;/code>, we create an &lt;a href="https://help.eyeo.com/en/adblockplus/how-to-write-filters#elemhide_basic">element hiding exception&lt;/a>, marked &lt;code>#@#&lt;/code>, for all elements &lt;code>#&lt;/code> with id &lt;code>banner_ad&lt;/code>, and put it in our adblocker's custom filter list.&lt;/p>
+&lt;p>Putting it all together, we get:&lt;/p>
+&lt;details open>
+&lt;summary>Defeating BlockAdBlock, version 1.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-css" data-lang="css">&lt;span class="nt">localhost&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="o">@&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="p">#&lt;/span>&lt;span class="nn">banner_ad&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">I've used localhost for demonstration, which you can replace with your URL.&lt;/aside>
+&lt;p>This counters BlockAdBlock successfully. The solution may seem basic, but it got the job done for a long time in the &lt;a href="https://github.com/reek/anti-adblock-killer/blob/master/anti-adblock-killer-filters.txt#L150">Anti-AdBlock-Killer filter list&lt;/a>.&lt;/p>
+&lt;h2 id="version-2-november-2015---january-2016-a-few-improvements">Version 2 (November 2015 - January 2016): a few improvements&lt;/h2>
+&lt;div class="github-code">
+&lt;i data-feather="github">&lt;/i>
+&lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v2-reversed.js">Source code&lt;/a>&lt;a href="https://github.com/xy2iii/bab-history/commit/302e415b5d8d86d1749c6ea5d4b3a1d6fc995eb9#diff-f9901228d7dadbc695e79f98b44125e6">v1/v2 diff&lt;/a>
+&lt;/div>
+&lt;h3 id="bait-ad-creation-less-bugs">Bait ad creation: less bugs&lt;/h3>
+&lt;p>There's a subtle bug in the first &lt;a href="#bab-bait-ad-creation">bait ad creation&lt;/a> implementation above: the div that's created has no content, so it creates a 0 height by 0 width div.
+Later, the code checks if the div was removed if the height and width of the bait div was empty. But since the div had 0 height, BlockAdBlock would always trigger.&lt;sup id="fnref:4">&lt;a href="#fn:4" class="footnote-ref" role="doc-noteref">4&lt;/a>&lt;/sup>&lt;/p>
+&lt;details open>
+&lt;summary>Fixing the empty div bug.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nx">bab&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">bait&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">createElement&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;DIV&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">appendChild&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">createTextNode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;Â &amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">A child div is created, with some content.&lt;/aside>
+&lt;h3 id="detection-via-fake-image-ads">Detection via fake image ads&lt;/h3>
+&lt;p>In this method, we create a fake image with a random name on &lt;code>doubleclick.net&lt;/code>. Adblockers will block the image, thinking it to be an ad's image. However, this requires no change to block in our filter.&lt;/p>
+&lt;details open>
+&lt;summary>Creating a fake image ad.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nx">bab&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">...&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">bait&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">createElement&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;DIV&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">innerHTML&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;&amp;lt;img src=&amp;#34;http://doubleclick.net/&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomStr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;.jpg&amp;#34;&amp;gt;&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">&lt;code>randomStr()&lt;/code> creates a random-length string.&lt;/aside>
+&lt;p>The other notable difference is the use of a &lt;code>setInterval&lt;/code> timer instead of just checking once if the trigger is set.
+It newly checks if the image ad still exists, and if its &lt;code>src&lt;/code> attribute hasn't been modified, by checking the contents of the bait.&lt;/p>
+&lt;details open>
+&lt;summary>A new &lt;code>setInterval&lt;/code>, and checking for the image's existence.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">10
+&lt;/span>&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js"> &lt;span class="p">...&lt;/span>
+&lt;span class="nx">checkCallback&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">setInterval&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">clientHeight&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">clientWidth&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">display&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;hidden&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">visibility&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;none&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">opacity&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">try&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="hl"> &lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getElementById&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;banner_ad&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">innerHTML&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">indexOf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;click&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="k">catch&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">delay&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">1000&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">Why &lt;code>indexof('click')&lt;/code>? The image will look like this: src=&amp;quot;double&lt;strong>click&lt;/strong>.net/abcdefg.jpg&amp;rdquo;, so we check if that substring still exists.&lt;/aside>
+&lt;h2 id="version-3-november-2015---march-2016-generalized-baiting">Version 3 (November 2015 - March 2016): generalized baiting&lt;/h2>
+&lt;div class="github-code">
+&lt;i data-feather="github">&lt;/i>
+&lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v3-reversed.js">Source code&lt;/a>&lt;a href="https://github.com/xy2iii/bab-history/commit/0cf84eb57a702a78e29d8cf69022a94ad521284b#diff-f9901228d7dadbc695e79f98b44125e6">v2/v3 diff&lt;/a>
+&lt;/div>
+&lt;h3 id="bait-ad-creation-randomized-ids">Bait ad creation: randomized IDs&lt;/h3>
+&lt;p>The only change in this version, though a significant one, is the appearance of randomized IDs for the bait ad.
+A new ID is taken from a list of ad IDs at page load, and is used for the bait ad, now placed in the middle of the page.&lt;/p>
+&lt;details >
+&lt;summary>The list of random bait IDs.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;span class="lnt">51
+&lt;/span>&lt;span class="lnt">52
+&lt;/span>&lt;span class="lnt">53
+&lt;/span>&lt;span class="lnt">54
+&lt;/span>&lt;span class="lnt">55
+&lt;/span>&lt;span class="lnt">56
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="kd">var&lt;/span> &lt;span class="nx">baitIDs&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;span class="s2">&amp;#34;ad-left&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;adBannerWrap&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-frame&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-header&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-img&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-inner&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-label&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-lb&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-footer&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-container&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-container-1&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;ad-container-2&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;Ad300x145&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;Ad300x250&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;Ad728x90&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdArea&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdFrame1&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdFrame2&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdFrame3&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdFrame4&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdLayer1&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdLayer2&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;Ads_google_01&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;Ads_google_02&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;Ads_google_03&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;Ads_google_04&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;DivAd&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;DivAd1&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;DivAd2&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;DivAd3&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;DivAdA&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;DivAdB&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;DivAdC&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdImage&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdDiv&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdBox160&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;AdContainer&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;glinkswrapper&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;adTeaser&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;banner_ad&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;adBanner&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;adbanner&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;adAd&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;bannerad&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34; ad_box&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34; ad_channel&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34; adserver&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34; bannerid&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;adslot&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;popupad&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;adsense&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;google_ad&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;outbrain-paid&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;sponsored_link&amp;#34;&lt;/span>
+&lt;span class="p">]&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">A long list that demonstrates significant domain knowledge.&lt;/aside>
+&lt;details open>
+&lt;summary>Random ID generation.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js"> &lt;span class="nx">randomBaitID&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">baitIDs&lt;/span>&lt;span class="p">[&lt;/span> &lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="nx">baitIDs&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">length&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">]&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">passed_eid&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">randomBaitID&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">bait&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">createElement&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;DIV&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">bait&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">id&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">passed_eid&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">As this runs on every load, the bait's ID will be different each time.&lt;/aside>
+&lt;h3 id="blocking-blockadblock-version-3-to-latest">Blocking BlockAdBlock, version 3 to latest&lt;/h3>
+&lt;p>BlockAdBlock uses the blind spot of adblockers: if the filter allows all the above IDs, then it also allows genuine ads to pass through.
+If you don't allow blocking the above IDs, then other filters which may use these IDs in their filters to target ads will not work anymore.&lt;/p>
+&lt;p>In a way, BlockAdBlock is &lt;strong>forcing the adblocker to make itself useless&lt;/strong>.&lt;/p>
+&lt;p>In adblockers, we can run arbitrary JS before anything in the page runs. We could try to delete the BlockAdBlock object prematurely.
+But to do that, we need the name of the object BlockAdBlock is attached to, &lt;a href="#architecture">which is randomized each run,&lt;/a> which would require running the code.&lt;/p>
+&lt;p>uBlock Origin took another approach. The code is ran by &lt;code>eval&lt;/code>, so what if we could define our own &lt;code>eval&lt;/code> function that would block execution if we detect BlockAdBlock? In JS the &lt;code>Proxy&lt;/code> object can accomplish this: any property, affectation and method can be replaced for any object.&lt;/p>
+&lt;p>This could be bypassed by not &lt;code>eval&lt;/code>ing the initial BlockAdBlock payload and using it directly, so we also proxy the entrypoint: the &lt;code>setTimeout&lt;/code> call. Since setTimeout is passed a string and not a function, we check the string.&lt;/p>
+&lt;details open>
+&lt;summary>Defeating BlockAdBlock in &lt;a href="https://github.com/gorhill/uBlock/blob/master/src/web_accessible_resources/nobab.js">uBlock Origin (src)&lt;/a>.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="kr">const&lt;/span> &lt;span class="nx">signatures&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;span class="p">[&lt;/span> &lt;span class="s1">&amp;#39;blockadblock&amp;#39;&lt;/span> &lt;span class="p">]&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="p">[&lt;/span> &lt;span class="s1">&amp;#39;babasbm&amp;#39;&lt;/span> &lt;span class="p">]&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="p">[&lt;/span> &lt;span class="sr">/getItem\(&amp;#39;babn&amp;#39;\)/&lt;/span> &lt;span class="p">]&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="p">[&lt;/span>
+&lt;span class="s1">&amp;#39;getElementById&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;String.fromCharCode&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;charAt&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;DOMContentLoaded&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;AdBlock&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;addEventListener&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;doScroll&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;fromCharCode&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;&amp;lt;&amp;lt;2|r&amp;gt;&amp;gt;4&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;sessionStorage&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;clientWidth&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;localStorage&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;Math&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s1">&amp;#39;random&amp;#39;&lt;/span>
+&lt;span class="p">]&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="p">]&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kr">const&lt;/span> &lt;span class="nx">check&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">s&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="c1">// check for signature
+&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">A list of signatures: identifying patterns of the code. &lt;code>check&lt;/code> checks an eval'd string against these patterns.&lt;/aside>
+&lt;details open>
+&lt;summary>&lt;a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy">Proxying&lt;/a> the &lt;code>eval&lt;/code> and &lt;code>setTimeout&lt;/code> functions.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nb">window&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nb">eval&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nb">Proxy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">window&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nb">eval&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">apply&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">target&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">thisArg&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="kr">const&lt;/span> &lt;span class="nx">a&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="k">typeof&lt;/span> &lt;span class="nx">a&lt;/span> &lt;span class="o">!==&lt;/span> &lt;span class="s1">&amp;#39;string&amp;#39;&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="o">!&lt;/span>&lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="nx">target&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">apply&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">thisArg&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="c1">// BAB detected: clean up.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">body&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">body&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">style&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">removeProperty&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;visibility&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="kd">let&lt;/span> &lt;span class="nx">el&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getElementById&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;babasbmsgx&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="nx">el&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">el&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">parentNode&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">removeChild&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">el&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nb">window&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">setTimeout&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nb">Proxy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">window&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">setTimeout&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">apply&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">target&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">thisArg&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="kr">const&lt;/span> &lt;span class="nx">a&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="c1">// Check that the passed string is not the BAB entrypoint.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>
+&lt;span class="k">typeof&lt;/span> &lt;span class="nx">a&lt;/span> &lt;span class="o">!==&lt;/span> &lt;span class="s1">&amp;#39;string&amp;#39;&lt;/span> &lt;span class="o">||&lt;/span>
+&lt;span class="sr">/\.bab_elementid.$/&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">test&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">a&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="nx">target&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">apply&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">thisArg&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">args&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">If we are executing BlockAdBlock, then clean up.&lt;/aside>
+&lt;p>As we are now using a &lt;a href="https://github.com/gorhill/uBlock/wiki/Static-filter-syntax#scriptlet-injection">scriptlet&lt;/a>, a custom piece of code ran by the adblocker, the filter changes slightly:&lt;/p>
+&lt;details open>
+&lt;summary>Defeating BlockAdBlock, all versions: the filter.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-css" data-lang="css">&lt;span class="nt">localhost&lt;/span>&lt;span class="err">#&lt;/span>&lt;span class="err">#&lt;/span> &lt;span class="o">+&lt;/span>&lt;span class="nt">js&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="nt">nobab&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">This doesn't run by default on every site, for performance reasons, so specify it for each site with the script.&lt;/aside>
+&lt;h2 id="version-4-january-2016---april-2016-experimental-features">Version 4 (January 2016 - April 2016): experimental features&lt;/h2>
+&lt;div class="github-code">
+&lt;i data-feather="github">&lt;/i>
+&lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v4-reversed.js">Source code&lt;/a>&lt;a href="https://github.com/xy2iii/bab-history/commit/a497819b713fa94ef7fa202c8fc1e9578cffe784#diff-f9901228d7dadbc695e79f98b44125e6">v3/v4 diff&lt;/a>
+&lt;/div>
+&lt;p>The above detection method was made in &lt;a href="https://github.com/uBlockOrigin/uAssets/blob/91f936dbaeaa681fab4d9259a818458db2200e74/assets/ublock/resources.txt#L493">January 2016, according to uBlock Origin commit history&lt;/a>, and has not changed in concept since its inception.
+BlockAdBlock never tried to work around this filter after its creation, by changing its code architecture. Instead, it continued development with more features. And when we go over to the BlockAdBlock page, we see an interesting tab: &amp;ldquo;Need more anti-adblock power?&amp;quot;.&lt;/p>
+&lt;picture>
+&lt;source srcset="bab-advanced-detection.webp">
+&lt;img class="" src="bab-advanced-detection.png" alt="Advanced detection">
+&lt;/picture>
+&lt;p>Although those defenses are only available in a special tab, they are included in all scripts and executed by fittingly-named variables. In version 4, two are implemented:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>aDefOne&lt;/code>, the &amp;ldquo;specific defense for AdSense sites&amp;rdquo;.&lt;/li>
+&lt;li>&lt;code>aDefTwo&lt;/code>, the &amp;ldquo;special element defense&amp;rdquo;.&lt;/li>
+&lt;/ul>
+&lt;h3 id="accidental-debug-comments">Accidental debug comments&lt;/h3>
+&lt;p>There's something I should mention before we go. When reversing this version, one function caught my eye:
+&lt;details open>
+&lt;summary>A debug &lt;code>console.log()&lt;/code> that's used in the code!&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="kd">function&lt;/span> &lt;span class="nx">consolelog&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="c1">// &amp;#34;Dev mode&amp;#34; check: developpers of BAB must set window.consolelog to 1.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nb">window&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">consolelog&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">console&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">log&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">e&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">This runs only if the global &lt;code>consolelog&lt;/code> is set, like &lt;code>window.consolelog = 1&lt;/code>.&lt;/aside>
+&lt;/p>
+&lt;p>These debug comments are only available in this version of the code. If I hadn't been reversing each version, I never would have caught it. These comments provide valuable information on how the code works.&lt;/p>
+&lt;h3 id="advanced-defense-adsense">Advanced defense: AdSense&lt;/h3>
+&lt;p>All of these special defenses are put in &lt;code>check&lt;/code> and not in &lt;code>arm&lt;/code>, like the architecture would suggest.
+This would suggest a change of developer that was perhaps unfamiliar with the codebase.&lt;/p>
+&lt;p>If AdSense is active on the page, we check that the ads which are supposed to be there still exist. If they're gone because of the adblocker, then BlockAdBlock activates.&lt;/p>
+&lt;details open>
+&lt;summary>A clever defense: check if existing ads, created by AdSense, are gone.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">13
+&lt;/span>&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">15
+&lt;/span>&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="kd">function&lt;/span> &lt;span class="nx">check&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">q&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;ins.adsbygoogle&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="c1">// Selects all Google ads in the document.
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">adsbygoogleQuery&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">querySelector&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">q&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">adsbygoogleQuery&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="c1">// Ads are not blocked, since the bait ad is still there,
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="c1">// and adblockDetected hasn&amp;#39;t been set
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">aDefOne&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;yes&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">consolelog&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;case2: standard bait says ads are NOT blocked.&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">adsbygoogle&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="hl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">scriptExists&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">adsbygoogle&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span> &lt;span class="nx">consolelog&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;case2: And Adsense pre-exists.&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="hl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">adsbygoogleQuery&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">innerHTML&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">replace&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sr">/\s/g&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">length&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span> &lt;span class="c1">// The ad&amp;#39;s content was cleared, so...
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="nx">consolelog&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;case2: Ads are blocked.&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arm&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">&lt;code>scriptExists&lt;/code> will check the entire page for a script with the given URL.&lt;/aside>
+&lt;p>The &lt;code>scriptExists&lt;/code> implementation looks for a given script within the page. In this case, it will detect the Adsense script if it exists.&lt;sup id="fnref:5">&lt;a href="#fn:5" class="footnote-ref" role="doc-noteref">5&lt;/a>&lt;/sup>&lt;/p>
+&lt;details open>
+&lt;summary>Compare the passed script URL against all scripts currently on the page.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 7
+&lt;/span>&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="kd">function&lt;/span> &lt;span class="nx">scriptExists&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">href&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">href&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">href&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">href&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">substr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">href&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">length&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="mi">15&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">scripts&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getElementsByTagName&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;script&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kd">var&lt;/span> &lt;span class="nx">i&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">scripts&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">length&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="nx">i&lt;/span>&lt;span class="o">--&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">src&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">String&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">scripts&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">i&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">src&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">src&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="nx">src&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">src&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">substr&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">src&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">length&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="mi">15&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="hl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">src&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="nx">href&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="kc">false&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">Both the compared URL and all the script's URL's are trimmed to 15 characters, though I'm not sure why.&lt;/aside>
+&lt;h3 id="advanced-defense-special-element-defense">Advanced defense: Special element defense&lt;/h3>
+&lt;p>This method, unlike the first one, has a disclaimer: &lt;em>&amp;ldquo;Please test after installation to ensure compatibility with your site.&amp;quot;&lt;/em> To contextualize where we are in the code, let's look at &lt;code>check&lt;/code>:&lt;/p>
+&lt;details open>
+&lt;summary>This special defense only triggers if adblock wasn't detected and there is no AdSense script on the page.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">13
+&lt;/span>&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="nx">check&lt;/span>&lt;span class="o">:&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">checkPredicate&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">unused&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">checkPredicate&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="c1">// Adblocker detected, arm
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">q&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;ins.adsbygoogle&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">adsbygoogleQuery&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">querySelector&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">q&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">adsbygoogleQuery&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">aDefOne&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;yes&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="c1">// Special defense one: AdSense defense (see above)
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="hl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">aDefTwo&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;yes&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="c1">// Special defense two: Special element defense
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">This method assumes that owners will only be using AdSense to serve ads on their page: if the AdSense script doesn't exist, there must be something wrong.&lt;/aside>
+&lt;p>So why the disclaimer? This method tries to include the AdSense script. If it doens't load, it's likely the adblocker blocked the network request, so BlockAdBlock triggers.
+But this may mess up some web sites, hence the warning.&lt;/p>
+&lt;details open>
+&lt;summary>If we fail to load AdSense, trigger the overlay.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">10
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">11
+&lt;/span>&lt;/span>&lt;span class="hl">&lt;span class="lnt">12
+&lt;/span>&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">aDefTwo&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;yes&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="cm">/* Add Google ad code to head.
+&lt;/span>&lt;span class="cm"> If it errors, the adblocker must have blocked the connection. */&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">googleAdCode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s1">&amp;#39;//static.doubleclick.net/instream/ad_status.js&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">consolelog&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;case3: standard bait says ads are NOT blocked. Maybe ???\
+&lt;/span>&lt;span class="s1"> No Adsense is found. Attempting to add Google ad code to head...&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">script&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">createElement&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;script&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">script&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">setAttribute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;type&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;text/javascript&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">script&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">setAttribute&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;src&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">googleAdCode&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="hl"> &lt;span class="nx">script&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">onerror&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;span class="hl"> &lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arm&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;span class="hl"> &lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span> &lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span>&lt;span class="nx">scriptExists&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">googleAdCode&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nb">document&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">getElementsByTagName&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s1">&amp;#39;head&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">appendChild&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">script&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">adsbygoogleQuery&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">check&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">&lt;code>onerror&lt;/code> fires upon a failure on at network level, like an adblocker blocking the request.&lt;/aside>
+&lt;p>And indeed, most adblockers fall for it and block the request.
+However, there's one adblocker that I haven't mentionned until this point. Let's talk about the &lt;a href="https://brave.com/fr/">Brave browser&lt;/a>.&lt;/p>
+&lt;h3 id="brave-browsers-answer-to-blockadblock">Brave Browser's answer to BlockAdBlock&lt;/h3>
+&lt;p>Until now I've examined uBlock Origin's response against BlockAdBlock. And it works, but it needs a specific filter to be added for each site that has BlockAdBlock on it.
+Brave is impressive because it detects and circumvents BlockAdBlock on all versions, without any action needed. To do so, it spoofs the request directly at the network level.&lt;sup id="fnref:6">&lt;a href="#fn:6" class="footnote-ref" role="doc-noteref">6&lt;/a>&lt;/sup>&lt;/p>
+&lt;p>Instead of blocking the &lt;code>ad_status.js&lt;/code> request, it lets it through but loads a &lt;strong>0-byte fake Google Ads instead&lt;/strong>. This clever trick fools BlockAdBlock, because &lt;code>onerror&lt;/code> fires only if the network request fails.&lt;/p>
+&lt;picture>
+&lt;source srcset="chromium-brave.webp">
+&lt;img class="" src="chromium-brave.png" alt="Chromium with adblocker &amp;amp; Brave vs BlockAdBlock: network requests">
+&lt;/picture>
+&lt;h2 id="version-5-march-2016---november-2016">Version 5 (March 2016 - November 2016)&lt;/h2>
+&lt;div class="github-code">
+&lt;i data-feather="github">&lt;/i>
+&lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v5-reversed.js">Source code&lt;/a>&lt;a href="https://github.com/xy2iii/bab-history/commit/b20d45201125767d63f5718b44a47082847e49bf#diff-f9901228d7dadbc695e79f98b44125e6">v4/v5 diff&lt;/a>
+&lt;/div>
+&lt;h3 id="advanced-defense-favicon-spam">Advanced defense: Favicon spam&lt;/h3>
+&lt;p>The only change of note in this version is that the second advanced defense was rewritten, but still holds the same basic principle: try network requests that will be blocked by the adblocker. This time, however, it tries to load favicons instead of AdSense.&lt;/p>
+&lt;p>Brave evades this detection in the same was as above. It loads the images correctly, but creates fake 1x1 images.&lt;/p>
+&lt;details open>
+&lt;summary>Favicon spam. &lt;code>baitImages&lt;/code> generates bait images, too.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">15
+&lt;/span>&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="hl">&lt;span class="lnt">20
+&lt;/span>&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">aDefTwo&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;yes&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="o">!&lt;/span> &lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ranAlready&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="err">/&lt;/span>
+&lt;span class="kd">var&lt;/span> &lt;span class="nx">favicons&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;span class="s2">&amp;#34;//www.google.com/adsense/start/images/favicon.ico&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;//www.gstatic.com/adx/doubleclick.ico&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;//advertising.yahoo.com/favicon.ico&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;//ads.twitter.com/favicon.ico&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="s2">&amp;#34;//www.doubleclickbygoogle.com/favicon.ico&amp;#34;&lt;/span>
+&lt;span class="p">]&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">len&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">favicons&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">length&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="nx">img&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">favicons&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="nx">len&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;span class="p">...&lt;/span>
+&lt;span class="nx">baitImages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c1">// creates bait images
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">m&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nx">Image&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="hl"> &lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">onerror&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span> &lt;span class="nx">baitImages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">src&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">imgCopy&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">baitImages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="hl"> &lt;span class="nx">c&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">onerror&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span> &lt;span class="nx">adblockDetected&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">baitImages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arm&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">src&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">img&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nx">baitImages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">ranAlready&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kc">true&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">&lt;code>baitImages&lt;/code> may be called so frequently, with a different, random amount of images, to throw off adblockers who want to block statically.&lt;/aside>
+&lt;h2 id="version-6-april-2016---november-2016-blocking-brave">Version 6 (April 2016 - November 2016): blocking Brave&lt;/h2>
+&lt;div class="github-code">
+&lt;i data-feather="github">&lt;/i>
+&lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed/blob/master/v6-reversed.js">Source code&lt;/a>&lt;a href="https://github.com/xy2iii/bab-history/commit/6ab4ad4272cfcd131013702e144476abf2d5101e#diff-f9901228d7dadbc695e79f98b44125e6">v5/v6 diff&lt;/a>
+&lt;/div>
+&lt;p>So far BlockAdBlock's techniques, although simplistic at first, have grown in terms of complexity and detection rate.
+But there's still one enemy left unconquered: the Brave browser.&lt;/p>
+&lt;h3 id="advanced-defense-fake-favicon-detection">Advanced defense: Fake favicon detection&lt;/h3>
+&lt;p>Why did BlockAdBlock switch from trying to load a script to an image (a favicon)?
+The answer is this code, which is put inside the &amp;ldquo;favicon spam&amp;rdquo; defense and activates if the Brave defense is active.&lt;/p>
+&lt;details open>
+&lt;summary>Detecting Brave Browser: check the response for a fake image.&lt;/summary>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="hl">&lt;span class="lnt"> 7
+&lt;/span>&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-js" data-lang="js">&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">aDefTwo&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s1">&amp;#39;yes&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">baitImages&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">floor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">Math&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">random&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="c1">// earlier favicon code...
+&lt;/span>&lt;span class="c1">&lt;/span> &lt;span class="kd">var&lt;/span> &lt;span class="nx">m&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nx">Image&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">aDefThree&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">onload&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="kd">function&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;span class="hl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">width&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="mi">8&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">m&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">width&lt;/span> &lt;span class="o">&amp;gt;&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span> &lt;span class="nb">window&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;&amp;#39;&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="nx">randomID&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="s1">&amp;#39;&amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">arm&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;span class="p">}&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>
+&lt;/details>
+&lt;aside class="aside-details">Check the favicon's size. If it's less than 8x8, it was probably swapped out by Brave.&lt;/aside>
+&lt;p>With this method, Brave is defeated, and other adblockers will be detected if they run the code (most, like uBlock Origin, outright block it in the first place.)&lt;/p>
+&lt;p>After this update, around the end of November 2016, BlockAdBlock disappeared from the web. Although their &amp;ldquo;advanced defense&amp;rdquo; techniques work, they were never enabled for the majority of users. This was their last update, and their last post on both Twitter and their site was sometimes in late 2017.&lt;/p>
+&lt;p>However, the legacy BlockAdBlock left is significant. And even though it can be trivially blocked nowadays, I still see BlockAdBlock used in today's sites.&lt;/p>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>In the end, who will win the arms race between ad-blockers and ad-blockers-blockers? Only time can tell, but I think ad-blockers still have the advantage. As the arms race evolves, ad-blockers will have to use more and more contrived techniques and completely custom code, as watching BlockAdBlock's evolution over time hopefully shows.&lt;/p>
+&lt;p>On the other hand, blockers have the advantage of stable systems and powerful filtering tools via filter lists, and have access to JavaScript, too: with these systems, it only takes one person to figure out how to defeat the adblocker and update the filter list with new sites.&lt;/p>
+&lt;p>By analysing BlockAdBlock's evolution over time, as well as various ad blocker's responses, we managed to draw a picture of the small war between BlockAdBlock and ad blockers, and in the process learnt how ad-blockers-blockers block the ad-blockers.&lt;/p>
+&lt;p>&lt;a href="https://github.com/xy2iii/BlockAdBlock-reversed">You can find my reverse-engineering on GitHub&lt;/a>. Thank you for reading.&lt;/p>
+&lt;script src="https://xy2.dev/js/lib/d3.v5.min.js">&lt;/script>
+&lt;script src="d3-map.js">&lt;/script>
+&lt;section class="footnotes" role="doc-endnotes">
+&lt;hr>
+&lt;ol>
+&lt;li id="fn:1" role="doc-endnote">
+&lt;p>If you want an intuition of how it works, try pasting the below example into a JS console and then look at the code. If you're interested in its inner workings, &lt;a href="https://github.com/evanw/packer/blob/master/packer.js">here's the source code&lt;/a>. &lt;a href="#fnref:1" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:2" role="doc-endnote">
+&lt;p>Don't believe me? Try changing &lt;code>eval&lt;/code> to &lt;code>console.log&lt;/code> in the first line of the above example and you might find something hidden&amp;hellip; &lt;a href="#fnref:2" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:3" role="doc-endnote">
+&lt;p>The timestamp says &lt;code>201510&lt;/code>, so shouldn't it be October? The reason for this is that we don't know when the script changed. All we know is:&lt;/p>
+&lt;ul>
+&lt;li>On 2015-10, there was one version saved: &lt;code>20151007203811.js&lt;/code>.&lt;/li>
+&lt;li>On 2015-11, there was a new version: &lt;code>20151113115955.js&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>As far as we know, the script could have been changed the day before the second timestamp. As such, I err on the cautious side when timing the versions. &lt;a href="#fnref:3" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:4" role="doc-endnote">
+&lt;p>The tests for v1, above, were made while fixing this bug in the v1 script. &lt;a href="#fnref:4" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:5" role="doc-endnote">
+&lt;p>Thanks to &lt;a href="https://www.reddit.com/r/javascript/comments/fs9030/how_an_anti_adblocker_works_reverseengineering/fm18g9m?utm_source=share&amp;amp;utm_medium=web2x">McStroyer on Reddit&lt;/a> for pointing this out. &lt;a href="#fnref:5" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li id="fn:6" role="doc-endnote">
+&lt;p>Brave's adblock component is open source, so we can peek at the source to get an intuition on how it works.&lt;/p>
+&lt;ul>
+&lt;li>A method &lt;a href="https://github.com/brave/brave-core/blob/master/components/brave_shields/browser/ad_block_base_service.cc#L37">ResourceTypeToString&lt;/a> evalutates what kind of resource is intercepted.&lt;/li>
+&lt;li>Brave's ad blocker, in &lt;a href="https://github.com/brave/brave-core/blob/master/components/brave_shields/browser/ad_block_base_service.cc#L120">ShouldStartRequest&lt;/a>, checks if an intercepted resource &lt;a href="https://github.com/brave/brave-core/blob/master/components/brave_shields/browser/ad_block_base_service.cc#L137">matches an adblock rule&lt;/a>.&lt;/li>
+&lt;li>If it does, it then returns a &lt;a href="https://github.com/brave/brave-core/blob/88d1bbf718795ae4ddbfe8eb9104c1a06abd52e4/browser/net/brave_ad_block_tp_network_delegate_helper.cc#L88">fake resource&lt;/a> based on the earlier resource type, and makes the request &amp;ldquo;successful&amp;rdquo;.&lt;/li>
+&lt;/ul>
+&lt;p>Thanks to &lt;a href="https://fmarier.org/">Francois Marier&lt;/a> for pointing out that Brave is open-source. &lt;a href="#fnref:6" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;/section></description></item><item><title>Reverse-engineering RNG in a GBA game</title><link>https://xy2.dev/article/re-skgba/</link><pubDate>Fri, 10 Jan 2020 11:40:29 +0100</pubDate><guid>https://xy2.dev/article/re-skgba/</guid><description>&lt;p>This post is a gentle introduction to reverse-engineering, through the unusual medium of &lt;a href="http://tasvideos.org/WelcomeToTASVideos.html">tool-assisted speedrunning&lt;/a>.&lt;/p>
+&lt;p>We're going to find an RNG (random number generator) in a game, using a combination of &lt;a href="https://reverseengineering.stackexchange.com/questions/3473/what-is-the-difference-between-static-disassembly-and-dynamic-disassembly">dynamic and static analysis&lt;/a>, and then predict it later on. It also introduces usage of a debugger and disassembler, as well as some scripting.&lt;/p>
+&lt;h2 id="but-why">But why?&lt;/h2>
+&lt;p>Tool-assisted speedrunning is beating games as fast as possible, but with infinite retries. Whenever you make a mistake, you can go back in time - literally - and try with different inputs. More sophisticated tooling allows to enter and modify the input that's passed to the game each frame. It's a meta-game; I find it kind of fun, and it makes for some cool results. TASing is about going fast: everything that makes us not fast has to be taken care of, including luck.&lt;/p>
+&lt;p>In video games, many events aren't random: they're given the illusion of randomness by a random number generator. Every time something in the game needs a random event, for example the generation of dust particles, or the movement of an enemy, it calls the RNG, which returns a random number. We can imagine the RNG function: it most likely returns a random number, which is then used by calling code.&lt;/p>
+&lt;p>If we fully understood how some RNG in a game worked and its effects on the game, we'd be able to manipulate luck itself with careful play. But how do we find out?&lt;/p>
+&lt;h2 id="dynamic-analysis">Dynamic analysis&lt;/h2>
+&lt;p>The game I'm using here is the Gameboy Advance game &lt;code>Shaman King - Master of Spirits (U)&lt;/code>. I'm using the &lt;a href="https://github.com/TASVideos/BizHawk">BizHawk&lt;/a> emulator.&lt;/p>
+&lt;p>Well, how does the game work? After playing around for a bit to get a sense of the game, we go forward. You play a dude with a sword: he can attack with it, jump around, and do special attacks with souls he collects. That's all that we have access to.&lt;/p>
+&lt;p>After completing the first area, we come across an interesting enemy:&lt;/p>
+&lt;video controls>
+&lt;source src="normal.webm" type="video/webm">
+&lt;source src="normal.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>We meet a boxer enemy. He jumps back and forth, and seems to attack at a random(!) pace. After a hop, he will either jab (straight punch) or wait. We have a source of random phenomena! When running straight at him, his pattern is &lt;em>Jab&lt;/em>, &lt;em>Jab&lt;/em>, &lt;em>Jab&lt;/em>, &lt;strong>Wait&lt;/strong>, &lt;em>Jab&lt;/em> and so on.&lt;/p>
+&lt;p>No matter how long we wait, this pattern is always the same. This suggests that the RNG isn't called by anyone else other than the boxer. Most of our actions don't seem to call the RNG either, like jumping, attacking or backdashing.&lt;/p>
+&lt;p>However, when we special attack a few times and then walk to him, the pattern changes:&lt;/p>
+&lt;video controls>
+&lt;source src="manip.webm" type="video/webm">
+&lt;source src="manip.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The pattern is now &lt;em>Jab&lt;/em>, &lt;em>Jab&lt;/em>, &lt;strong>Wait&lt;/strong>, &lt;em>Jab&lt;/em>, &lt;em>Jab&lt;/em>. We now know that special attacks do call, and thus change the RNG. But, more importantly, we have two states of the game that we can compare against: the normal state where we walk up, and the other one where we special attack and change the RNG.&lt;/p>
+&lt;p>Our emulator has save states, which saves the game's state. If we have two different states, we can compare between them. Let's do so with the use of RAM search, which gives us an overview of the game's entire memory. At the first search we're met with the IWRAM, which is the GBA's RAM, address space:&lt;/p>
+&lt;img src="ramsearch.png" alt="RAM search with all values">
+&lt;p>We can use savestates with our emulator, so let's do so. We have two states: normal and changed RNG. We load the first state, then set our comparaison to &amp;ldquo;Not Equal To&amp;rdquo; to compare against the previous values. Finally, we load the second state with changed RNG, and we get a list of what addresses have changed:&lt;/p>
+&lt;img src="trimmedsearch.png" alt="RAM search with filtered values">
+&lt;p>It's likely that the address of our RNG is hiding here somewhere. But what do I mean by address? Wasn't the RNG a function?&lt;/p>
+&lt;p>In order for RNG to function, it needs to generate a random number each time. So how would we implement it ourselves? Most likely, we would need an algorithm that generates a wide range of possible values, ideally without much repetition. But, more importantly, in order to function it may need to know the previously generated number, in order to use it as a base for the next one. Thus we can spectulate that an RNG functions as some kind of &lt;em>generator&lt;/em>, creating a sequence of random numbers.&lt;/p>
+&lt;p>To generate something new in a sequence, we need to know the last number in the sequence. It's very likely this is stored in RNG. This may not always be the case: some old video game RNGs are more primitive, relying on things like clock time for random events.&lt;/p>
+&lt;p>So, is our value really here? Let's check by freezing all these addresses: freezing an address means that it keeps its last value and cannot be modified. What happens?&lt;/p>
+&lt;video controls>
+&lt;source src="freeze.webm" type="video/webm">
+&lt;source src="freeze.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The boxer now only waits - he never chooses to jab anymore. If we froze on a different RNG value, he would have likely only jabbed. We can use &lt;a href="https://en.wikipedia.org/wiki/Binary_search_algorithm">binary search&lt;/a> to find the proper address: we freeze half the addresses and keep the other ones unfrozen, and check if the behavior of the boxer is still non-random. If it is, then the address is in the frozen half: if not, the address is is the &lt;em>not&lt;/em>-frozen half.&lt;/p>
+&lt;p>After a few searches, we find our address &lt;code>0x1DC8&lt;/code> in IWRAM. It behaves as expected: the RNG is called &amp;amp; changes both when we do the special attack, and after boxer guy's hop, to determine if he jabs or waits.&lt;/p>
+&lt;p>We just did some dynamic analysis: we reasoned about how the program (the game) works as it ran, by observing it. By doing so, we were able to determine information about our program much faster than if we were disassembling the game directly. We now know the address where the RNG is located in memory, but that tells us nothing about how it actually works. All we can observe is that the RNG changes. What's the algorithm behind it?&lt;/p>
+&lt;h2 id="dynamic-analysis-1">Dynamic analysis&lt;/h2>
+&lt;p>We could look at the game's binary in a disassembler. We're looking for &lt;code>0x1DC8&lt;/code> in IWRAM, but what does that really mean?&lt;/p>
+&lt;p>In a GBA, memory and I/O is memory mapped, meaning that both normal memory and I/O is mapped onto fixed addresses. The GBA's address bus is 32 bits long, meaning it could address up to 4 gigabytes of address space. Most of the GBA has already been reverse engineered for us, and we can take a look at the &lt;a href="https://problemkaputt.de/gbatek.htm#gbamemorymap">GBA's memory map&lt;/a> directly. Under &amp;ldquo;General Internal Memory&amp;rdquo; we find:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-plaintext" data-lang="plaintext">00000000-00003FFF BIOS - System ROM (16 KBytes)
+00004000-01FFFFFF Not used
+02000000-0203FFFF WRAM - On-board Work RAM (256 KBytes) 2 Wait
+02040000-02FFFFFF Not used
+03000000-03007FFF WRAM - On-chip Work RAM (32 KBytes)
+03008000-03FFFFFF Not used
+04000000-040003FE I/O Registers
+04000400-04FFFFFF Not used
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Starting at address &lt;code>0x30000000&lt;/code> is our On-chip Work RAM, also known as the IWRAM segment we found earlier. Similarly, we find that ROM starts at &lt;code>0x08000000&lt;/code>. When looking at disassembly, we would be looking for address &lt;code>0x3001DC8&lt;/code>, as that's the memory mapped address.&lt;/p>
+&lt;p>Using a debugger, we can find the code that updates this address. &lt;a href="https://problemkaputt.de/gba.htm">No$GBA&lt;/a> is an emulator which includes a built-in debugger which is sufficient for our needs. We can define a breakpoint whenever the RNG is written to, in &lt;code>Debug -&amp;gt; Toggle Breakpoint&lt;/code>. &lt;code>[03001DC8]!&lt;/code> will halt execution on write. Finally, we do something in the game which advances the RNG:&lt;/p>
+&lt;img src="nosgba_rng.png" alt="No$GBA, finding a routine">
+&lt;p>We find a &lt;code>str&lt;/code> that updates the RNG at &lt;code>0x0800BD34&lt;/code> in the binary. &lt;code>str r0, [r3]&lt;/code> will write the value of &lt;code>r0&lt;/code>, which seems to contain our new RNG value &lt;code>0x8AF90E43&lt;/code>, into an address equal to the &lt;strong>value&lt;/strong> of &lt;code>r3&lt;/code>. &lt;code>r3&lt;/code> contains our RNG address, &lt;code>0x03001DC8&lt;/code>, or &lt;code>0x1DC8&lt;/code> in IWRAM. What does the code do? Let's go to a disassembler and find out.&lt;/p>
+&lt;h2 id="reversing-rng-generation">Reversing RNG generation&lt;/h2>
+&lt;p>After &lt;a href="https://www.pokecommunity.com/showthread.php?t=235587">setting up our disassembler, IDA, for GBA games&lt;/a>, we look at the routine we found in more detail:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-plaintext" data-lang="plaintext">ROM:0800BD24 PUSH {LR} ; prologue
+ROM:0800BD26 MOVS R1, R0
+ROM:0800BD28 LDR R3, =dword_3001DC8 ; Load pointer to last RNG in R3
+ROM:0800BD2A LDR R2, [R3] ; Load value of RNG using the pointer
+ROM:0800BD2C LDR R0, =0x41C64E6D ; r2 takes 0x41C64ED
+ROM:0800BD2E MULS R0, R2 ; r0= r0 * 0x41C64ED with integer overflow
+ROM:0800BD30 LDR R2, =0x3039 ; r2 takes 0x3039
+ROM:0800BD32 ADDS R0, R0, R2 ; r0= r0 + 0x3039
+ROM:0800BD34 STR R0, [R3] ; Store new value of RNG at pointer
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Here, &lt;code>dword_3001DC8&lt;/code> is equal to &lt;code>0x03001DC8&lt;/code>, which is &lt;code>0x1DC8&lt;/code> &lt;a href="https://problemkaputt.de/gbatek.htm#gbamemorymap">in IWRAM&lt;/a>. The &lt;code>muls&lt;/code> will overflow the value, making the mult equivalent to a modulo 2&lt;sup>32&lt;/sup>. So what this routine does is equivalent to:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-c" data-lang="c">&lt;span class="kt">int&lt;/span> &lt;span class="nf">advance_rng&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kt">int&lt;/span> &lt;span class="n">previous_rng&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">{&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="p">(&lt;/span> &lt;span class="n">previous_rng&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="mh">0x41C64E6D&lt;/span> &lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mh">0x3039&lt;/span> &lt;span class="c1">// modulo 32 bits
+&lt;/span>&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>This is a pretty common RNG algorithm called a &lt;a href="https://en.wikipedia.org/wiki/Linear_congruential_generator">linear congruential generator&lt;/a>.&lt;/p>
+&lt;h2 id="emulating-rng-generation-looking-ahead">Emulating RNG generation: looking ahead&lt;/h2>
+&lt;p>Phew. Let's see what we have:&lt;/p>
+&lt;ul>
+&lt;li>Some things (like enemies) can call the RNG.&lt;/li>
+&lt;li>RNG advances every time by a known algorithm.&lt;/li>
+&lt;li>We can get the current RNG value by reading off memory.&lt;/li>
+&lt;/ul>
+&lt;p>With this in place, we can predict RNG pretty easily. Why would this be useful? With knowledge of RNG, we can predict how anything in the game will act. We can map each future RNG value to an enemy behavior, like the boxer punching or not for example. For example, we could say that the boxer will punch on this RNG, then after three more calls, and so on. And knowing this, we can make our TAS runs that much faster, manipulating RNG in advance so that the right RNG hits at the right time.&lt;/p>
+&lt;p>However, there's one important detail: RNG can advance more than once per frame. If there are multiple enemies on-screen, then we'll have no idea what called RNG. While this is impossible to solve without disassembling every enemy's behavior, we can try something else: have our code tell us &lt;em>how much&lt;/em> RNG is called per frame.&lt;/p>
+&lt;p>To implement this I chose a dequeue, implemented with a circular buffer, which is very space efficient. The idea is that we can memoize the next RNG values, thus predicting RNG in the future. How does this particular queue work? I find it's best to try it out.&lt;/p>
+&lt;div id="normal-buffer" class="buffer">&lt;/div>
+&lt;p>At the start, we fill our buffer with values. Each value is generated from the previous one. Take the first generated value, when you click for the first time. The previous value is &lt;code>0x0&lt;/code> , so &lt;code>0x0 * 0x41C64E6D == 0x0&lt;/code>. Finally we add &lt;code>0x3039&lt;/code>, so the resulting value is &lt;code>0x0 + 0x3039 == 0x3039&lt;/code>. The queue lets us memoize values. If RNG advances, then insert a new value.&lt;/p>
+&lt;p>This acts like a normal queue. But when its capacity is full, the last value is overwritten and the head (the circle) and tail (the square) indexes change.&lt;/p>
+&lt;div id="full-buffer" class="buffer">&lt;/div>
+&lt;p>What if our RNG advances more than needed? Here our queue size is 8, but if RNG advances 30 times in a single frame, how do we tell? We don't have the intermediate values, we can only read from RNG frame-by-frame. In other words, we only have the starting RNG and ending RNG, and can't tell how much the RNG function was applied between the two values.&lt;/p>
+&lt;p>A simple way to solve this is to take the start value, apply the RNG function over and over (while storing the intermediate values) until we match the end values. The number of times we applied the RNG function is the same as the number of RNG calls.&lt;/p>
+&lt;p>However, with something like an array, it would be hard to both keep a cache of values and predict next values at the same time. The answer is the queue: we can infinitely take from the queue and insert back the advanced RNG value. We keep this infinite loop going until we find our RNG. To illustrate, let's start from a full buffer, looking for value &lt;code>0xE6791B2E&lt;/code>. Try it out:&lt;/p>
+&lt;div id="search-buffer" class="buffer">
+&lt;div class="flex">
+&lt;button class="btn" onclick=bufferLookForValue(0xe6791b2e)>Search for value&lt;/button>
+&lt;button class="btn" onclick=resetBuffer()>Reset&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;div class="results">&lt;/div>
+&lt;p>In short, we can seek infinitely whenever RNG advances. Whenever we &amp;ldquo;consume&amp;rdquo; a value - that is, read the last RNG and insert a new RNG based on that one - increment a count by one. By reading the last few RNGs, we can have a list of what RNGs passed, even if we do not know them; we &lt;em>predicted&lt;/em> them using our RNG function and stepping until we find our value.&lt;/p>
+&lt;p>Implementing it in Lua, we can predict values in advance, and predict by how much RNG advanced when it did advance. &lt;a href="https://github.com/xy2iii/sk1-lua/blob/master/sk1.lua#L27">You can find the source here.&lt;/a>&lt;/p>
+&lt;video controls>
+&lt;source src="rng-script.webm" type="video/webm">
+&lt;source src="rng-script.mp4" type="video/mp4">
+&lt;/video>
+&lt;h2 id="conclusion">Conclusion&lt;/h2>
+&lt;p>This post shows some basic reverse-engineering techniques as well as the full spectrum of tools available applied to a real problem, via tool-assisted speedrunning. It shows how far you can go in reversing a program, even with information that's sometimes very limited, using scripting to solve your problems.&lt;/p>
+&lt;p>If you are interested in reverse-engineering, trying to RE games is a pretty fun way to learn without too much pressure. In the future, we might delve more into patching the game itself, as well as the object system, to implement our RNG prediction in the game itself.&lt;/p>
+&lt;script src="d3.v5.min.js">&lt;/script>
+&lt;script src="circular.js">&lt;/script>
+&lt;script src="index.js">&lt;/script>
+&lt;style>
+.buffer button {
+margin-bottom: 1rem;
+}
+.flex {
+display: flex;
+justify-content: center;
+}
+.c {
+max-width: 100%;
+height: auto;
+display: block;
+margin: 0 auto;
+}
+.buffer svg {
+max-width: 100%;
+height: auto;
+display: block;
+margin: 0 auto;
+}
+.buffer circle {
+fill: none;
+stroke: black;
+stroke-width: 2px;
+}
+.buffer rect {
+fill: none;
+stroke: black;
+stroke-width: 2px;
+}
+.cellText textPath {
+text-anchor: middle;
+font-family: Fira Code;
+}
+.cell {
+stroke: black;
+stroke-width: 0.3px;
+}
+.results {
+font-family: Fira Code;
+}
+@media (max-width: 600px) {
+.cellText textPath {
+font-size: 12px;
+}
+}
+&lt;/style></description></item><item><title>Writing HTML using Racket and X-expressions</title><link>https://xy2.dev/article/racket-blog/</link><pubDate>Mon, 18 Nov 2019 11:40:29 +0100</pubDate><guid>https://xy2.dev/article/racket-blog/</guid><description>&lt;p>What if I wanted to make HTML programmable - treat it as data, and add my own constructs and syntax to it? Let's make something that would generate a list for any value I pass it. Let's write it in Python.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="k">def&lt;/span> &lt;span class="nf">genlist&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">item&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">n&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">html&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="sa">&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>&lt;span class="s1">&amp;lt;ul&amp;gt;&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>
+&lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">n&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;span class="n">html&lt;/span> &lt;span class="o">+&lt;/span>&lt;span class="o">=&lt;/span> &lt;span class="sa">&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>&lt;span class="s1">&amp;lt;li&amp;gt;&lt;/span>&lt;span class="si">%s&lt;/span>&lt;span class="s1">&amp;lt;/li&amp;gt;&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span> &lt;span class="o">%&lt;/span> &lt;span class="n">item&lt;/span>
+&lt;span class="n">html&lt;/span> &lt;span class="o">+&lt;/span>&lt;span class="o">=&lt;/span> &lt;span class="sa">&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>&lt;span class="s1">&amp;lt;/ul&amp;gt;&lt;/span>&lt;span class="s1">&amp;#39;&lt;/span>
+&lt;span class="k">return&lt;/span> &lt;span class="n">html&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The cool thing is that &lt;code>genlist&lt;/code> can take itself as an argument: &lt;code>genlist(genlist('item', 3), 5)&lt;/code> will return a nested list of HTML elements. We've augemented HTML with new &amp;ldquo;syntax&amp;rdquo;.&lt;/p>
+&lt;p>But this approach is a little limited. We end up manipulating strings around, instead of a proper data representation for HTML. Instead of having a tree structure, we have a stream that can be only added to. There's also a lot of busywork, like opening and closing tags that could be done away with. Let's try again with &lt;a href="https://jinjda.palletsprojects.com/en/2.10.x/templates/">templates&lt;/a>:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">ul&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">n&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">li&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="p">{&lt;/span> &lt;span class="n">item&lt;/span> &lt;span class="p">}&lt;/span>&lt;span class="p">}&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">li&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;span class="p">{&lt;/span>&lt;span class="o">%&lt;/span> &lt;span class="n">endfor&lt;/span> &lt;span class="o">%&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="o">/&lt;/span>&lt;span class="n">ul&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>With templates, we're writing HTML directly. At any moment we can drop down to Python to generate HTML. Unfortunately, by using this new templating language, we need to keep track of both Python and the templating engine.&lt;/p>
+&lt;p>We've lost a lot of expressiveness: what if we wanted to create a nested list again? We could make it a &lt;a href="https://jinja.palletsprojects.com/en/2.10.x/templates/#macros">template macro&lt;/a>, but we have to do extra work to call it inside itself, and suddently we have an extra language to learn.&lt;/p>
+&lt;p>That leaves us with a choice:&lt;/p>
+&lt;ul>
+&lt;li>use our favorite programming language to generate HTML, allowing to be more dynamic.&lt;/li>
+&lt;li>use templates at a loss of expressiveness.&lt;/li>
+&lt;/ul>
+&lt;p>What if we could have both?&lt;/p>
+&lt;h2 id="racket-x-expressions-a-data-structure-for-html">Racket X-expressions: a data structure for HTML&lt;/h2>
+&lt;p>&lt;a href="https://racket-lang.org/">Racket&lt;/a> has support for &lt;a href="https://docs.racket-lang.org/xml/index.html#%28def._%28%28lib._xml%2Fprivate%2Fxexpr-core..rkt%29._xexpr~3f%29%29">X-expressions&lt;/a>. Our nested list from before: &lt;code>genlist(genlist('item', 3), 5)&lt;/code> would look like this in an X-expression:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-lisp" data-lang="lisp">&lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;ul&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nc">list&lt;/span> &lt;span class="ss">&amp;#39;li&lt;/span> &lt;span class="s">&amp;#34;item&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The elements with a quote &lt;code>'&lt;/code> before them are &lt;a href="https://docs.racket-lang.org/reference/symbols.html">symbols&lt;/a>, so &lt;code>'li&lt;/code> represents an list element.
+&lt;code>(list 'li &amp;quot;item&amp;quot;)&lt;/code> becomes an li element containing &lt;code>&amp;quot;item&amp;quot;&lt;/code>. Elements can contain other elements too: &lt;code>(list 'li (list 'p &amp;quot;item&amp;quot;))&lt;/code> contains an li that contains a p, and so on. We can convert this X-expression into HTML with &lt;a href="https://docs.racket-lang.org/xml/index.html#%28def._%28%28lib._xml%2Fmain..rkt%29._xexpr-~3estring%29%29">&lt;code>(xexpr-&amp;gt;string)&lt;/code>&lt;/a>, giving us a way to go back to HTML.&lt;/p>
+&lt;p>This form is a little unwieldy, with &lt;code>list&lt;/code> everywhere. Racket offers a construct, named &lt;a href="https://docs.racket-lang.org/guide/quote.html">&lt;code>quote&lt;/code>&lt;/a> and written &lt;code>'&lt;/code> that can make writing these expressions easier:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-racket" data-lang="racket">&lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="ss">ul&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="ss">li&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="s2">item&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;code>quote&lt;/code> takes any thing that looks like a list - anything with parantheses, creates a list and &lt;strong>quotes&lt;/strong> each value. putting a &lt;code>'&lt;/code> before each of them. If the thing to be quoted is a value, it leaves it as is. Quoting is recursive: if it finds a list, it will quote each element of the list.&lt;/p>
+&lt;p>With this form &lt;code>'(li &amp;quot;item&amp;quot;)&lt;/code> becomes &lt;code>(list 'li '&amp;quot;item&amp;quot;)&lt;/code>. On nested lists, &lt;code>'(li (p &amp;quot;item&amp;quot;))&lt;/code> becomes &lt;code>(list 'li (list 'p &amp;quot;item&amp;quot;))&lt;/code>.&lt;/p>
+&lt;p>Sometimes we may want to quote something, but keep some expressions from being quoted. We can use the &lt;a href="https://docs.racket-lang.org/guide/qq.html">&lt;code>quasiquote&lt;/code>&lt;/a> form, written &lt;code>`&lt;/code> (backtick). Within the quasiquoted list, we can use &lt;code>,&lt;/code> to declare our non-quoted expressions.&lt;/p>
+&lt;p>For example, take &lt;a href="https://docs.racket-lang.org/reference/strings.html#%28def._%28%28quote._~23~25kernel%29._string-append%29%29">&lt;code>(string-append)&lt;/code>&lt;/a>, which puts two strings together. If we want a list with a call to &lt;code>(string-append)&lt;/code> in it, we run into issues quickly:&lt;/p>
+&lt;p>&lt;code>'(li (p &amp;quot;hello&amp;quot;) (string-append &amp;quot;hi&amp;quot; &amp;quot;world&amp;quot;))&lt;/code> evaluates to &lt;br>&lt;code>(list ('p &amp;quot;hello&amp;quot;) ('string-append &amp;quot;hi&amp;quot; &amp;quot;world&amp;quot;))&lt;/code>. With quasiquoting, we can tell &lt;code>quote&lt;/code> that &lt;code>(string-append)&lt;/code> is a function call:&lt;/p>
+&lt;p>The list &lt;code>`(li (p &amp;quot;hello&amp;quot;) ,(string-append &amp;quot;hi&amp;quot; &amp;quot;world&amp;quot;))&lt;/code> evaluates to &lt;br>&lt;code>(list ('li ('p &amp;quot;hello&amp;quot;) &amp;quot;hiworld&amp;quot;))&lt;/code>.&lt;/p>
+&lt;p>We could have something that generates a list, like a variable with a list of several values, or a function that returns a list of values. To get its elements instead of the list directly, we can use &lt;code>unquote-splicing&lt;/code>, written &lt;code>,@&lt;/code>, to &lt;em>flatten&lt;/em> the list:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-lisp" data-lang="lisp">&lt;span class="p">(&lt;/span>&lt;span class="nv">define&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">things&lt;/span> &lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="o">`&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="o">,&lt;/span>&lt;span class="nv">things&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nv">-&amp;gt;&lt;/span> &lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="o">`&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="o">,@&lt;/span>&lt;span class="nv">things&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nv">-&amp;gt;&lt;/span> &lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h2 id="code-as-data-adding-syntax-to-html">Code as data: adding syntax to HTML&lt;/h2>
+&lt;p>We have a data structure that represents HTML - and we can define &lt;code>genlist&lt;/code> again:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-lisp" data-lang="lisp">&lt;span class="p">(&lt;/span>&lt;span class="nv">define&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">recur-li&lt;/span> &lt;span class="nv">item&lt;/span> &lt;span class="nv">n&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nf">=&lt;/span> &lt;span class="nv">n&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">; empty list &lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nc">cons&lt;/span>
+&lt;span class="o">`&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="o">,&lt;/span>&lt;span class="nv">item&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">; unquote the item, if it is another function&lt;/span>
+&lt;span class="c1">; eg. (genlist) passed to this function&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">recur-li&lt;/span> &lt;span class="nv">item&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nf">-&lt;/span> &lt;span class="nv">n&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">define&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">genlist&lt;/span> &lt;span class="nv">item&lt;/span> &lt;span class="nv">n&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="o">`&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="o">,@&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">recur-li&lt;/span> &lt;span class="nv">item&lt;/span> &lt;span class="nv">n&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">; get each element from the &lt;/span>
+&lt;span class="c1">; recur-li list in the ul instead of&lt;/span>
+&lt;span class="c1">; having a list of li inside the ul&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>The bulk of the work is done by &lt;code>recur-li&lt;/code>, a recursive function that constructs a list of &lt;code>(li)&lt;/code>. &lt;code>(genlist &amp;quot;hi&amp;quot; 5)&lt;/code> will build &lt;code>'(ul ((li &amp;quot;hi&amp;quot;) (li &amp;quot;hi&amp;quot;) (li &amp;quot;hi&amp;quot;) (li &amp;quot;hi&amp;quot;) (li &amp;quot;hi&amp;quot;)))&lt;/code>.&lt;/p>
+&lt;p>Finally, we get back the power we had with the naive Python implementation. We can use &lt;code>genlist&lt;/code> within itself: &lt;code>(genlist (genlist &amp;quot;item&amp;quot; 3) 5)&lt;/code> will create a list, where each element is a &lt;code>(genlist)&lt;/code> call which is then interpreted. We've also kept a nice structure around, where we deal with a representation of HTML in our code.&lt;/p>
+&lt;p>Let's make a page with this in mind:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-lisp" data-lang="lisp">&lt;span class="p">(&lt;/span>&lt;span class="nv">define&lt;/span> &lt;span class="nv">our-page&lt;/span>
+&lt;span class="o">`&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">html&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">body&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">p&lt;/span> &lt;span class="s">&amp;#34;Hi world!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="o">,&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">genlist&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">genlist&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="mi">5&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>This generates:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-lisp" data-lang="lisp">&lt;span class="nv">-&amp;gt;&lt;/span>
+&lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">html&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">body&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">p&lt;/span> &lt;span class="s">&amp;#34;Hi world!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>We can use &lt;code>(xexpr-&amp;gt;string our-page)&lt;/code> to convert it to a string. It's neat, but it doens't have an &lt;code>head&lt;/code> element. It would also be nice to set the title of the page to something. Surely we can pass the title to &lt;code>our-page&lt;/code>?&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;span class="lnt">8
+&lt;/span>&lt;span class="lnt">9
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-lisp" data-lang="lisp">&lt;span class="p">(&lt;/span>&lt;span class="nv">define&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">gen-head&lt;/span> &lt;span class="nv">title&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="o">`&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">head&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">meta&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">charset&lt;/span> &lt;span class="s">&amp;#34;utf-8&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">title&lt;/span> &lt;span class="o">,&lt;/span>&lt;span class="nv">title&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">define&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">our-page&lt;/span> &lt;span class="nv">title&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">; our-page becomes a function&lt;/span>
+&lt;span class="o">`&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">html&lt;/span>
+&lt;span class="o">,&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">gen-head&lt;/span> &lt;span class="nv">title&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">body&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">p&lt;/span> &lt;span class="s">&amp;#34;Hi world!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="o">,&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">genlist&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">genlist&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="mi">5&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>And, as expected:&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-lisp" data-lang="lisp">&lt;span class="p">(&lt;/span>&lt;span class="nv">our-page&lt;/span> &lt;span class="s">&amp;#34;Saying hi&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="nv">-&amp;gt;&lt;/span>
+&lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">html&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">head&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">meta&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">charset&lt;/span> &lt;span class="s">&amp;#34;utf-8&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">title&lt;/span> &lt;span class="s">&amp;#34;Saying hi&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">body&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">p&lt;/span> &lt;span class="s">&amp;#34;Hi world!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">ul&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nv">li&lt;/span> &lt;span class="s">&amp;#34;hello!&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>It looks a lot like a template, where you pass data and that data goes somewhere within the template, and that's because it is one. With a little bit of ingeniuity and quoting, we've managed to make HTML programmable in a much more natural way.&lt;/p>
+&lt;p>There is no distinction between code and data. Data can go anywhere code usually goes: as seen, we use the usual HTML elements like &lt;code>body&lt;/code> along with our own constructs like &lt;code>genlist&lt;/code> and it works. This is the principle behind &lt;a href="https://en.wikipedia.org/wiki/S-expression#Use_in_Lisp">S-expressions&lt;/a>: &lt;strong>code is data&lt;/strong>. With X-expressions, which are expressions as well, we can transform a fixed language like HTML and add our own constructs to it, instead of treating it as data to pass around.&lt;/p>
+&lt;p>Racket is particularly skilled at this feat: it can create its own languages. We could imagine a new language based on HTML but with new, more convenient syntaxic forms. If you are interested in this idea, check out &lt;a href="https://beautifulracket.com/">Beautiful Racket&lt;/a>.&lt;/p>
+&lt;h2 id="conclusion-making-a-blog-in-racket">Conclusion: making a blog in Racket&lt;/h2>
+&lt;p>This blog is written in Racket, and most of the HTML here is generated with X-expressions. The static site generator I use is called &lt;a href="https://github.com/zyrolasting/polyglot">polyglot&lt;/a>, which allows to write HTML in any Racket-created language. It takes this idea and adds a lot of cool stuff to make it usable, including:&lt;/p>
+&lt;ul>
+&lt;li>a &lt;a href="https://github.com/zyrolasting/unlike-assets">webpack-like system&lt;/a> in Racket to link assets together&lt;/li>
+&lt;li>writing in markdown, with the ability to drop down to a Racket script that generates HTML like shown here, to have full control over prose and markup&lt;/li>
+&lt;li>the ability to write HTML with any Racket language desired, not just Racket itself&lt;/li>
+&lt;/ul>
+&lt;p>If nothing else, making sites in Racket is fun. It's not tiring to use like many web frameworks, and I think the end result looks nice. Racket can be practical, too!&lt;/p></description></item><item><title>About me</title><link>https://xy2.dev/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://xy2.dev/about/</guid><description/></item><item><title>Contact</title><link>https://xy2.dev/contact/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://xy2.dev/contact/</guid><description/></item><item><title>Portfolio</title><link>https://xy2.dev/portfolio/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://xy2.dev/portfolio/</guid><description/></item></channel></rss>

@@ -1,5 +1,5 @@
 // CSS is generated automatically by Hugo.
-@import 'syntax'; 
+@import 'syntax';
 
 .post {
   // Info at start of post
@@ -8,10 +8,6 @@
   .info {
     display: flex;
     justify-content: space-between;
-  }
-
-  h1 {
-    margin-bottom: 0;
   }
 
   .date {
@@ -37,7 +33,7 @@
   }
 
   .content {
-    $chroma-border-radius: 0 0 3rem 0;
+    $chroma-border-radius: 0 0 0.5rem 0;
 
     // Put a border for the main table.
     // In the generated CSS, .chroma is the element with
@@ -130,7 +126,7 @@
       cursor: pointer;
       border-bottom: 1px solid $primary;
       list-style: none;
-      transition: border-color .5s cubic-bezier(.79,.14,.15,.86);
+      transition: border-color 0.5s cubic-bezier(0.79, 0.14, 0.15, 0.86);
     }
     > summary::-webkit-details-marker {
       display: none;
@@ -141,41 +137,41 @@
       left: 0;
       top: 0.25rem;
       border-radius: 0.25rem 0.25rem 0.5rem 0.25rem;
-      content: "++";
+      content: '++';
       color: #fff;
       font-size: 1.25rem;
-      font-family: "Fira Code";
+      font-family: 'Fira Code';
       margin: 0 1rem 0 0;
       text-align: center;
       width: 2rem;
       background: $primary;
       transform: translateX(0rem) translateY(0rem);
-      transition: transform .2s cubic-bezier(.79,.14,.15,.86),
-        background .5s ease-in-out;
+      transition: transform 0.2s cubic-bezier(0.79, 0.14, 0.15, 0.86),
+        background 0.5s ease-in-out;
     }
     > summary:hover {
       border-color: $secondary;
-      transition: border-color .25s cubic-bezier(.79,.14,.15,.86);
+      transition: border-color 0.25s cubic-bezier(0.79, 0.14, 0.15, 0.86);
     }
     > summary:hover::before {
       background: $secondary;
       transform: translateX(-0.5rem) translateY(0rem);
-      transition: transform .2s cubic-bezier(.79,.14,.15,.86), 
-        border-color .25s cubic-bezier(.79,.14,.15,.86),
-        background .5s ease-in-out;
+      transition: transform 0.2s cubic-bezier(0.79, 0.14, 0.15, 0.86),
+        border-color 0.25s cubic-bezier(0.79, 0.14, 0.15, 0.86),
+        background 0.5s ease-in-out;
     }
   }
   details[open] summary:before {
-    content: "--";
+    content: '--';
   }
   .aside-details {
     color: $dark-gray;
     font-size: 0.85rem;
     padding-left: 2.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
   }
   details[open] .aside-details {
-    padding-top: 40px
+    padding-top: 40px;
   }
 
   .copy-code-button {
@@ -193,11 +189,11 @@
     z-index: 1;
     // Style
     border-radius: 0.25rem 0.25rem 0.25rem 1rem;
-    font-family: "Fira Code";
+    font-family: 'Fira Code';
     font-size: 0.85rem;
     // Ease out
     // Expotential transform
-    transition: transform .2s cubic-bezier(1,0,0,1);
+    transition: transform 0.2s cubic-bezier(1, 0, 0, 1);
     transform: translateX(0rem) translateY(0rem);
   }
   .copy-code-button:hover {

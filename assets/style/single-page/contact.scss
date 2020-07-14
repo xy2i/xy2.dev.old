@@ -4,6 +4,75 @@
   justify-content: center;
   align-items: center;
 
+  .contact-form {
+    .form-field {
+      display: flex;
+      flex-direction: column;
+
+      label {
+        display: flex;
+        align-items: center;
+        font-size: 1.5em;
+
+        .feather {
+          margin-left: 0.25rem;
+          margin-right: 0.5rem;
+          color: $primary;
+        }
+      }
+
+      input {
+        font-size: 1.25rem;
+        padding: 0.5rem;
+        margin: 0.5rem 0.175rem;
+        border: 1px solid $primary;
+        border-radius: 2px;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+      }
+      input :required {
+        border: 2px dotted orange;
+      }
+      textarea {
+        width: 100%;
+        font-family: Rosario, sans-serif;
+        padding: 0.5rem;
+        margin: 0.5rem 0.175rem;
+        border: 1px solid $primary;
+        border-radius: 2px;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+      }
+    }
+  }
+
+  .contact-btn {
+    transition: transform 0.05s linear, background 0.05s linear;
+    position: relative;
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 1rem;
+    width: 100%;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    border: 1px solid $primary;
+    background-color: $primary;
+    border-radius: 1rem;
+    color: white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    .feather {
+      margin-left: 0.25rem;
+      margin-right: 0.5rem;
+      color: white;
+    }
+  }
+
+  .contact-btn:hover {
+    background: rgba($primary, 0.8);
+    transition: background 0.05s linear;
+  }
+
   .big {
     font-size: 3rem;
   }

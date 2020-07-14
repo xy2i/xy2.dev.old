@@ -47,7 +47,7 @@
     right: 0;
     padding: 0.25rem 1rem 0.25rem 1rem;
     border-radius: 0 0 2rem 0;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(83, 54, 51, 0.6) 2rem);
+    background: linear-gradient(90deg, rgba(83, 54, 51, 0.3) 0%, rgba(83, 54, 51, 0.6) 2rem);
     z-index: 1;
     color: white;
     font-weight: bold;
@@ -55,21 +55,22 @@
     pointer-events: none; }
   .post-list .preview-title::before {
     position: absolute;
-    content: "";
+    content: '';
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #533633 0.25rem);
+    background: linear-gradient(90deg, rgba(83, 54, 51, 0.3) 0%, #533633 2rem);
     z-index: -1;
     opacity: 0;
-    transition: opacity .05s linear;
+    transition: opacity 0.05s linear;
     border-radius: 0 0 25px 0; }
   .post-list .preview-a-img:hover + .preview-title::before {
     opacity: 1; }
   .post-list .preview-title:hover::before {
     opacity: 1; }
   .post-list .preview-date {
+    display: flex;
     font-family: Fira Code, monospace;
     position: absolute;
     top: 0;
@@ -77,15 +78,12 @@
     background: linear-gradient(-90deg, rgba(255, 255, 255, 0) 0%, rgba(180, 184, 129, 0.8) 0.25rem);
     padding: 0.125rem 0.75rem 0.125rem 0.5rem;
     pointer-events: none; }
+    .post-list .preview-date .feather {
+      margin-right: 0.5rem;
+      color: #533633; }
   @media (min-width: 800px) {
     .post-list h1 {
       margin-top: 1rem; } }
-  @media (min-width: 1000px) {
-    .post-list .preview-date {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      top: auto; } }
 
 /* Background */
 .chroma {
@@ -435,8 +433,6 @@
   .post .info {
     display: flex;
     justify-content: space-between; }
-  .post h1 {
-    margin-bottom: 0; }
   .post .date {
     display: flex;
     color: #B4B881;
@@ -453,7 +449,7 @@
     padding-right: 1em; }
   .post .content .highlight > .chroma {
     position: relative;
-    border-radius: 0 0 3rem 0;
+    border-radius: 0 0 0.5rem 0;
     border-top: 2px solid #533633;
     border-bottom: 1px solid #B4B881;
     border-left: 1px dashed #B4B881;
@@ -525,10 +521,10 @@
       left: 0;
       top: 0.25rem;
       border-radius: 0.25rem 0.25rem 0.5rem 0.25rem;
-      content: "++";
+      content: '++';
       color: #fff;
       font-size: 1.25rem;
-      font-family: "Fira Code";
+      font-family: 'Fira Code';
       margin: 0 1rem 0 0;
       text-align: center;
       width: 2rem;
@@ -543,12 +539,12 @@
       transform: translateX(-0.5rem) translateY(0rem);
       transition: transform 0.2s cubic-bezier(0.79, 0.14, 0.15, 0.86), border-color 0.25s cubic-bezier(0.79, 0.14, 0.15, 0.86), background 0.5s ease-in-out; }
   .post details[open] summary:before {
-    content: "--"; }
+    content: '--'; }
   .post .aside-details {
     color: #433F3C;
     font-size: 0.85rem;
     padding-left: 2.5rem;
-    margin-bottom: 1rem; }
+    margin-bottom: 2rem; }
   .post details[open] .aside-details {
     padding-top: 40px; }
   .post .copy-code-button {
@@ -565,7 +561,7 @@
     color: white;
     z-index: 1;
     border-radius: 0.25rem 0.25rem 0.25rem 1rem;
-    font-family: "Fira Code";
+    font-family: 'Fira Code';
     font-size: 0.85rem;
     transition: transform 0.2s cubic-bezier(1, 0, 0, 1);
     transform: translateX(0rem) translateY(0rem); }
@@ -637,43 +633,119 @@
     .main .about .center {
       padding: 1rem; } }
 
+.main .portfolio .main-title {
+  padding-top: 1rem;
+  padding-bottom: 1rem; }
+
 .main .portfolio .link {
   font-size: 0.75rem; }
 
 .main .portfolio .grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: grid;
-  grid-template-areas: "preview description" "links   description";
-  grid-template-columns: [preview] 50fr [description] 50fr;
-  grid-template-rows: [preview] 6rem; }
+  grid-gap: 1rem;
+  grid-row-gap: 2rem; }
 
-.main .portfolio .preview {
-  grid-area: preview;
-  flex-basis: 60%;
-  flex-shrink: 0; }
+.main .portfolio .card {
+  border: 1px solid #533633;
+  border-radius: 5px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; }
 
-.main .portfolio .description {
-  grid-area: description;
-  flex-shrink: 1;
-  align-self: flex-end;
-  padding-left: 1rem;
-  margin-top: 0;
-  margin-bottom: 0; }
+.main .portfolio .card-img-container {
+  display: block;
+  border-bottom: 1px solid #533633; }
 
-.main .portfolio .links {
-  grid-area: links; }
+.main .portfolio .card-img {
+  display: block;
+  width: 100%;
+  border-radius: 5px; }
+
+.main .portfolio .card-content {
+  padding: 1rem; }
+  .main .portfolio .card-content .card-title {
+    font-size: 2rem; }
+
+.main .portfolio .card-info {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 1rem;
+  color: #533633;
+  background-color: rgba(180, 184, 129, 0.4);
+  border-top: 1px solid #B4B881;
+  font-family: Fira Code;
+  border-radius: 0 0 5px 5px; }
+  .main .portfolio .card-info .feather {
+    margin-right: 0.5rem; }
+  .main .portfolio .card-info .links .link:not(:first-child) {
+    margin-left: 1rem; }
 
 @media (min-width: 1000px) {
-  .main .portfolio .preview-date {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: auto; } }
+  .main .portfolio .grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, max-content); } }
 
 .main .contact {
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center; }
+  .main .contact .contact-form .form-field {
+    display: flex;
+    flex-direction: column; }
+    .main .contact .contact-form .form-field label {
+      display: flex;
+      align-items: center;
+      font-size: 1.5em; }
+      .main .contact .contact-form .form-field label .feather {
+        margin-left: 0.25rem;
+        margin-right: 0.5rem;
+        color: #533633; }
+    .main .contact .contact-form .form-field input {
+      font-size: 1.25rem;
+      padding: 0.5rem;
+      margin: 0.5rem 0.175rem;
+      border: 1px solid #533633;
+      border-radius: 2px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); }
+    .main .contact .contact-form .form-field input :required {
+      border: 2px dotted orange; }
+    .main .contact .contact-form .form-field textarea {
+      width: 100%;
+      font-family: Rosario, sans-serif;
+      padding: 0.5rem;
+      margin: 0.5rem 0.175rem;
+      border: 1px solid #533633;
+      border-radius: 2px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); }
+  .main .contact .contact-btn {
+    transition: transform 0.05s linear, background 0.05s linear;
+    position: relative;
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 1rem;
+    width: 100%;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    border: 1px solid #533633;
+    background-color: #533633;
+    border-radius: 1rem;
+    color: white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); }
+    .main .contact .contact-btn .feather {
+      margin-left: 0.25rem;
+      margin-right: 0.5rem;
+      color: white; }
+  .main .contact .contact-btn:hover {
+    background: rgba(83, 54, 51, 0.8);
+    transition: background 0.05s linear; }
   .main .contact .big {
     font-size: 3rem; }
   .main .contact p {
@@ -756,7 +828,7 @@ or a page itself.
 */
 .container {
   display: grid;
-  grid-template-areas: "sidebar" "about" "main";
+  grid-template-areas: 'sidebar' 'about' 'main';
   grid-template-rows: [sidebar] 3rem [about] 2rem; }
 
 .main {
@@ -827,7 +899,7 @@ with some flavor text, aligned to the right.
 
 .btn::before {
   position: absolute;
-  content: "";
+  content: '';
   bottom: 0;
   right: 0;
   height: 100%;
@@ -843,24 +915,24 @@ with some flavor text, aligned to the right.
 
 .btn:hover {
   background: rgba(83, 54, 51, 0.8);
-  transition: background .05s linear; }
+  transition: background 0.05s linear; }
 
 .btn:hover::before {
   position: absolute;
-  content: "";
+  content: '';
   bottom: 0;
   right: 0;
   height: 100%;
   width: 100%;
   background: #B4B881;
   transform: translateX(0.25rem) translateY(0.25rem);
-  transition: transform .05s linear; }
+  transition: transform 0.05s linear; }
 
 .btn:active::before {
   transform: translateX(0.5rem) translateY(0.5rem);
   background: rgba(180, 184, 129, 0.4);
-  transition: transform .05s linear;
-  transition: background .05s linear; }
+  transition: transform 0.05s linear;
+  transition: background 0.05s linear; }
 
 .btn-active {
   background-color: #B4B881; }
@@ -875,19 +947,17 @@ h1 {
   font-family: Roboto Condensed;
   font-size: 1.75rem;
   color: #533633;
-  display: flex;
-  margin-bottom: 0; }
+  display: flex; }
 
 h1::after {
-  content: " ";
+  content: ' ';
   margin-bottom: 10px;
   border-radius: 2px;
-  margin-left: 0.25rem;
+  margin-left: 0.75rem;
   background: linear-gradient(90deg, #533633 0%, rgba(180, 184, 129, 0.1) 100%);
   height: 3px;
   flex-grow: 1;
-  align-self: flex-end;
-  box-shadow: 3px 3px 3px #DDD; }
+  align-self: flex-end; }
 
 h2 {
   font-family: Roboto Condensed;
@@ -896,7 +966,7 @@ h2 {
   display: flex; }
 
 h2::after {
-  content: " ";
+  content: ' ';
   margin-bottom: 6px;
   border-radius: 2px;
   margin-left: 0.25rem;
@@ -911,7 +981,7 @@ h3 {
   display: flex; }
 
 h3::after {
-  content: " ";
+  content: ' ';
   margin-bottom: 5px;
   border-radius: 2px;
   margin-left: 0.25rem;
@@ -921,7 +991,7 @@ h3::after {
   align-self: flex-end; }
 
 h3 > code {
-  font-family: "Fira Code";
+  font-family: 'Fira Code';
   border: 1px solid #B4B881;
   padding: 0 0.25rem 0 0.25rem;
   border-radius: 3px;
@@ -933,7 +1003,7 @@ a {
 @media (min-width: 800px) {
   .container {
     display: grid;
-    grid-template-areas: "sidebar main" "about main";
+    grid-template-areas: 'sidebar main' 'about main';
     grid-template-columns: [sidebar] minmax(250px, 25fr) [main] 75fr;
     grid-template-rows: [sidebar] 294px;
     grid-column-gap: 1rem; }

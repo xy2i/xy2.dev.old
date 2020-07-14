@@ -1,47 +1,69 @@
 .main .portfolio {
+  .main-title {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  .link {
+    font-size: 0.75rem;
+  }
 
-    .link {
-        font-size: 0.75rem;
+  .grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-gap: 1rem;
+    grid-row-gap: 2rem;
+  }
+
+  .card {
+    border: 1px solid $primary;
+    border-radius: 5px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .card-img-container {
+    display: block;
+    border-bottom: 1px solid $primary;
+  }
+  .card-img {
+    display: block;
+    width: 100%;
+    border-radius: 5px;
+  }
+  .card-content {
+    padding: 1rem;
+
+    .card-title {
+      font-size: 2rem;
     }
-    
+  }
+  .card-info {
+    display: flex;
+    justify-content: center;
+    padding: 0.25rem 1rem;
+    color: $primary;
+    background-color: rgba($secondary, 0.4);
+    border-top: 1px solid $secondary;
+    font-family: Fira Code;
+    border-radius: 0 0 5px 5px;
+
+    .feather {
+      margin-right: 0.5rem;
+    }
+
+    .links .link:not(:first-child) {
+      margin-left: 1rem;
+    }
+  }
+
+  // Override
+  @media (min-width: $lg) {
     .grid {
-        display: grid;
-        grid-template-areas: 
-            "preview description"
-            "links   description";
-        grid-template-columns: 
-        [preview] 50fr
-        [description] 50fr;
-        grid-template-rows:
-        [preview] 6rem;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, max-content);
     }
-
-    .preview {
-        grid-area: preview;
-        flex-basis: 60%;
-        flex-shrink: 0;
-    }
-
-    .description {  
-        grid-area: description;
-        flex-shrink: 1;
-        align-self: flex-end;
-        padding-left: 1rem;
-        margin-top: 0;
-        margin-bottom: 0;
-    }
-
-    .links {
-        grid-area: links;
-    }
-
-    // Override
-    @media (min-width: $lg) {
-        .preview-date {
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: auto;
-        }
-    }
+  }
 }

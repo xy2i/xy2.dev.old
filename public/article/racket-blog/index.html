@@ -1,0 +1,376 @@
+<!doctype html>
+<html ⚡ lang="en">
+<head>
+  <meta charset="utf-8">
+<title>Writing HTML using Racket and X-expressions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="stylesheet" href="https://xy2.dev/custom/style.84120db3763893220ea1f039dec540c65f089ee33bb5bd60cd72450bf4f76d0e.css">
+
+<meta name="description" content="How I wrote a blog, using ideas from the 70s, in today&#39;s world.">
+<meta name="keywords"
+    content="hugo elhaj-lahsen, hugo elhaj lahsen, xy2_, xy2, computer science, blog, functional programming, lisp, reverse engineering, reversing, data visualisation, data science, datavis, dataviz">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Writing HTML using Racket and X-expressions">
+<meta property="og:url" content="https://xy2.dev/article/racket-blog/">
+<meta property="og:site_name" content="Writing HTML using Racket and X-expressions">
+<meta property="og:description" content="How I wrote a blog, using ideas from the 70s, in today&#39;s world.">
+<meta property="og:locale" content="en">
+
+    
+        <meta property="og:image" content="https://xy2.dev/article/racket-blog/cover.webp">
+        <meta name="twitter:image" content="https://xy2.dev/article/racket-blog/cover.webp">
+    
+
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://xy2.dev/article/racket-blog/">
+<link rel="shortcut icon" href="/favicon.png">
+<link href="https://xy2.dev/apple-icon.png" rel="apple-touch-icon" />
+</head>  
+<body>
+  <div class="container">
+    <a class="sidebar" href="https://xy2.dev/">
+      <img class="sidebar-img" src="/img/leitmotif.png">
+      <span class="sidebar-name">xy2_</span>
+    </a>
+    <nav class="about">
+      <div class="presentation-sm">
+        
+        
+          <a class="btn " href="/about">
+            About
+          </a> 
+        
+          <a class="btn " href="/portfolio">
+            Portfolio
+          </a> 
+        
+          <a class="btn " href="/">
+            Posts
+          </a> 
+        
+          <a class="btn " href="/contact">
+            Contact
+          </a> 
+        
+      </div>
+      <div class="presentation-md">
+        
+        
+        <p class="about-title">about -></p>
+        <div>
+          <a class="btn " href="/about">Hi! I&#39;m Hugo.</a> 
+        </div>
+        
+        <p class="about-title">portfolio -></p>
+        <div>
+          <a class="btn " href="/portfolio">I make software.</a> 
+        </div>
+        
+        <p class="about-title">posts -></p>
+        <div>
+          <a class="btn " href="/">I write about it.</a> 
+        </div>
+        
+        <p class="about-title">contact -></p>
+        <div>
+          <a class="btn " href="/contact">Let&#39;s talk!</a> 
+        </div>
+        
+      </div>
+    </nav>
+    <main class="main">
+     
+<div class="post">
+    <h1>Writing HTML using Racket and X-expressions</h1>
+    <div class="info">
+        <span class="date">
+            <i data-feather="clock"></i>November 18, 2019
+        </span>
+        <div class="categories">
+        
+            
+            
+            <a class="category btn" href="https://xy2.dev/categories/software-engineering">
+                Software Engineering
+            </a>
+            
+        
+        </div>
+    </div>
+    <div class="content">
+        <p>What if I wanted to make HTML programmable - treat it as data, and add my own constructs and syntax to it? Let&rsquo;s make something that would generate a list for any value I pass it. Let&rsquo;s write it in Python.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">genlist</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="p">:</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="sa"></span><span class="s1">&#39;</span><span class="s1">&lt;ul&gt;</span><span class="s1">&#39;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="p">:</span>
+        <span class="n">html</span> <span class="o">+</span><span class="o">=</span> <span class="sa"></span><span class="s1">&#39;</span><span class="s1">&lt;li&gt;</span><span class="si">%s</span><span class="s1">&lt;/li&gt;</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">item</span>
+    <span class="n">html</span> <span class="o">+</span><span class="o">=</span> <span class="sa"></span><span class="s1">&#39;</span><span class="s1">&lt;/ul&gt;</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">html</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>The cool thing is that <code>genlist</code> can take itself as an argument: <code>genlist(genlist('item', 3), 5)</code> will return a nested list of HTML elements. We&rsquo;ve augemented HTML with new &ldquo;syntax&rdquo;.</p>
+<p>But this approach is a little limited. We end up manipulating strings around, instead of a proper data representation for HTML. Instead of having a tree structure, we have a stream that can be only added to. There&rsquo;s also a lot of busywork, like opening and closing tags that could be done away with. Let&rsquo;s try again with <a href="https://jinjda.palletsprojects.com/en/2.10.x/templates/">templates</a>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-python" data-lang="python"><span class="o">&lt;</span><span class="n">ul</span><span class="o">&gt;</span>
+<span class="p">{</span><span class="o">%</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="o">%</span><span class="p">}</span> 
+    <span class="o">&lt;</span><span class="n">li</span><span class="o">&gt;</span><span class="p">{</span><span class="p">{</span> <span class="n">item</span> <span class="p">}</span><span class="p">}</span><span class="o">&lt;</span><span class="o">/</span><span class="n">li</span><span class="o">&gt;</span>
+<span class="p">{</span><span class="o">%</span> <span class="n">endfor</span> <span class="o">%</span><span class="p">}</span>
+<span class="o">&lt;</span><span class="o">/</span><span class="n">ul</span><span class="o">&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>With templates, we&rsquo;re writing HTML directly. At any moment we can drop down to Python to generate HTML. Unfortunately, by using this new templating language, we need to keep track of both Python and the templating engine.</p>
+<p>We&rsquo;ve lost a lot of expressiveness: what if we wanted to create a nested list again? We could make it a <a href="https://jinja.palletsprojects.com/en/2.10.x/templates/#macros">template macro</a>, but we have to do extra work to call it inside itself, and suddently we have an extra language to learn.</p>
+<p>That leaves us with a choice:</p>
+<ul>
+<li>use our favorite programming language to generate HTML, allowing to be more dynamic.</li>
+<li>use templates at a loss of expressiveness.</li>
+</ul>
+<p>What if we could have both?</p>
+<h2 id="racket-x-expressions-a-data-structure-for-html">Racket X-expressions: a data structure for HTML</h2>
+<p><a href="https://racket-lang.org/">Racket</a> has support for <a href="https://docs.racket-lang.org/xml/index.html#%28def._%28%28lib._xml%2Fprivate%2Fxexpr-core..rkt%29._xexpr~3f%29%29">X-expressions</a>. Our nested list from before: <code>genlist(genlist('item', 3), 5)</code> would look like this in an X-expression:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-lisp" data-lang="lisp"><span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;ul</span>
+  <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;ul</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;ul</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;ul</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;ul</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nc">list</span> <span class="ss">&#39;li</span> <span class="s">&#34;item&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>The elements with a quote <code>'</code> before them are <a href="https://docs.racket-lang.org/reference/symbols.html">symbols</a>, so <code>'li</code> represents an list element.
+<code>(list 'li &quot;item&quot;)</code> becomes an li element containing <code>&quot;item&quot;</code>. Elements can contain other elements too: <code>(list 'li (list 'p &quot;item&quot;))</code> contains an li that contains a p, and so on. We can convert this X-expression into HTML with <a href="https://docs.racket-lang.org/xml/index.html#%28def._%28%28lib._xml%2Fmain..rkt%29._xexpr-~3estring%29%29"><code>(xexpr-&gt;string)</code></a>, giving us a way to go back to HTML.</p>
+<p>This form is a little unwieldy, with <code>list</code> everywhere. Racket offers a construct, named <a href="https://docs.racket-lang.org/guide/quote.html"><code>quote</code></a> and written <code>'</code> that can make writing these expressions easier:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-racket" data-lang="racket"><span class="o">&#39;</span><span class="p">(</span><span class="ss">ul</span>
+  <span class="p">(</span><span class="ss">li</span> <span class="p">(</span><span class="ss">ul</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">(</span><span class="ss">li</span> <span class="p">(</span><span class="ss">ul</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">(</span><span class="ss">li</span> <span class="p">(</span><span class="ss">ul</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">(</span><span class="ss">li</span> <span class="p">(</span><span class="ss">ul</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span> <span class="p">(</span><span class="ss">li</span> <span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><p><code>quote</code> takes any thing that looks like a list - anything with parantheses, creates a list and <strong>quotes</strong> each value. putting a <code>'</code> before each of them. If the thing to be quoted is a value, it leaves it as is. Quoting is recursive: if it finds a list, it will quote each element of the list.</p>
+<p>With this form <code>'(li &quot;item&quot;)</code> becomes <code>(list 'li '&quot;item&quot;)</code>. On nested lists, <code>'(li (p &quot;item&quot;))</code> becomes <code>(list 'li (list 'p &quot;item&quot;))</code>.</p>
+<p>Sometimes we may want to quote something, but keep some expressions from being quoted. We can use the <a href="https://docs.racket-lang.org/guide/qq.html"><code>quasiquote</code></a> form, written <code>`</code> (backtick). Within the quasiquoted list, we can use <code>,</code> to declare our non-quoted expressions.</p>
+<p>For example, take <a href="https://docs.racket-lang.org/reference/strings.html#%28def._%28%28quote._~23~25kernel%29._string-append%29%29"><code>(string-append)</code></a>, which puts two strings together. If we want a list with a call to <code>(string-append)</code> in it, we run into issues quickly:</p>
+<p><code>'(li (p &quot;hello&quot;) (string-append &quot;hi&quot; &quot;world&quot;))</code> evaluates to <br><code>(list ('p &quot;hello&quot;) ('string-append &quot;hi&quot; &quot;world&quot;))</code>. With quasiquoting, we can tell <code>quote</code> that <code>(string-append)</code> is a function call:</p>
+<p>The list <code>`(li (p &quot;hello&quot;) ,(string-append &quot;hi&quot; &quot;world&quot;))</code> evaluates to <br><code>(list ('li ('p &quot;hello&quot;) &quot;hiworld&quot;))</code>.</p>
+<p>We could have something that generates a list, like a variable with a list of several values, or a function that returns a list of values. To get its elements instead of the list directly, we can use <code>unquote-splicing</code>, written <code>,@</code>, to <em>flatten</em> the list:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-lisp" data-lang="lisp"><span class="p">(</span><span class="nv">define</span> <span class="p">(</span><span class="nv">things</span> <span class="o">&#39;</span><span class="p">(</span><span class="p">(</span><span class="nv">li</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="mi">3</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+
+<span class="o">`</span><span class="p">(</span><span class="nv">ul</span> <span class="o">,</span><span class="nv">things</span><span class="p">)</span>
+<span class="nv">-&gt;</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="p">(</span><span class="nv">li</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="mi">3</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+<span class="o">`</span><span class="p">(</span><span class="nv">ul</span> <span class="o">,@</span><span class="nv">things</span><span class="p">)</span>
+<span class="nv">-&gt;</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="mi">3</span><span class="p">)</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="code-as-data-adding-syntax-to-html">Code as data: adding syntax to HTML</h2>
+<p>We have a data structure that represents HTML - and we can define <code>genlist</code> again:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-lisp" data-lang="lisp"><span class="p">(</span><span class="nv">define</span> <span class="p">(</span><span class="nv">recur-li</span> <span class="nv">item</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nf">=</span> <span class="nv">n</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="p">)</span> <span class="c1">; empty list    </span>
+    <span class="p">(</span><span class="nc">cons</span>
+      <span class="o">`</span><span class="p">(</span><span class="nv">li</span> <span class="o">,</span><span class="nv">item</span><span class="p">)</span> <span class="c1">; unquote the item, if it is another function</span>
+        <span class="c1">; eg. (genlist) passed to this function</span>
+      <span class="p">(</span><span class="nv">recur-li</span> <span class="nv">item</span> <span class="p">(</span><span class="nf">-</span> <span class="nv">n</span> <span class="mi">1</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+      
+<span class="p">(</span><span class="nv">define</span> <span class="p">(</span><span class="nv">genlist</span> <span class="nv">item</span> <span class="nv">n</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nv">ul</span> <span class="o">,@</span><span class="p">(</span><span class="nv">recur-li</span> <span class="nv">item</span> <span class="nv">n</span><span class="p">)</span><span class="p">)</span><span class="p">)</span> <span class="c1">; get each element from the </span>
+    <span class="c1">; recur-li list in the ul instead of</span>
+    <span class="c1">; having a list of li inside the ul</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>The bulk of the work is done by <code>recur-li</code>, a recursive function that constructs a list of <code>(li)</code>. <code>(genlist &quot;hi&quot; 5)</code> will build <code>'(ul ((li &quot;hi&quot;) (li &quot;hi&quot;) (li &quot;hi&quot;) (li &quot;hi&quot;) (li &quot;hi&quot;)))</code>.</p>
+<p>Finally, we get back the power we had with the naive Python implementation. We can use <code>genlist</code> within itself: <code>(genlist (genlist &quot;item&quot; 3) 5)</code> will create a list, where each element is a <code>(genlist)</code> call which is then interpreted. We&rsquo;ve also kept a nice structure around, where we deal with a representation of HTML in our code.</p>
+<p>Let&rsquo;s make a page with this in mind:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-lisp" data-lang="lisp"><span class="p">(</span><span class="nv">define</span> <span class="nv">our-page</span>
+  <span class="o">`</span><span class="p">(</span><span class="nv">html</span>
+    <span class="p">(</span><span class="nv">body</span> <span class="p">(</span><span class="nv">p</span> <span class="s">&#34;Hi world!&#34;</span><span class="p">)</span>
+      <span class="o">,</span><span class="p">(</span><span class="nv">genlist</span> <span class="p">(</span><span class="nv">genlist</span> <span class="s">&#34;hello!&#34;</span> <span class="mi">3</span><span class="p">)</span> <span class="mi">5</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>This generates:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-lisp" data-lang="lisp"><span class="nv">-&gt;</span> 
+<span class="o">&#39;</span><span class="p">(</span><span class="nv">html</span>
+  <span class="p">(</span><span class="nv">body</span>
+  <span class="p">(</span><span class="nv">p</span> <span class="s">&#34;Hi world!&#34;</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">ul</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>We can use <code>(xexpr-&gt;string our-page)</code> to convert it to a string. It&rsquo;s neat, but it doens&rsquo;t have an <code>head</code> element. It would also be nice to set the title of the page to something. Surely we can pass the title to <code>our-page</code>?</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-lisp" data-lang="lisp"><span class="p">(</span><span class="nv">define</span> <span class="p">(</span><span class="nv">gen-head</span> <span class="nv">title</span><span class="p">)</span>
+  <span class="o">`</span><span class="p">(</span><span class="nv">head</span> <span class="p">(</span><span class="nv">meta</span> <span class="p">(</span><span class="p">(</span><span class="nv">charset</span> <span class="s">&#34;utf-8&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+      <span class="p">(</span><span class="nv">title</span> <span class="o">,</span><span class="nv">title</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nv">define</span> <span class="p">(</span><span class="nv">our-page</span> <span class="nv">title</span><span class="p">)</span> <span class="c1">; our-page becomes a function</span>
+  <span class="o">`</span><span class="p">(</span><span class="nv">html</span>
+    <span class="o">,</span><span class="p">(</span><span class="nv">gen-head</span> <span class="nv">title</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">body</span> <span class="p">(</span><span class="nv">p</span> <span class="s">&#34;Hi world!&#34;</span><span class="p">)</span>
+          <span class="o">,</span><span class="p">(</span><span class="nv">genlist</span> <span class="p">(</span><span class="nv">genlist</span> <span class="s">&#34;hello!&#34;</span> <span class="mi">3</span><span class="p">)</span> <span class="mi">5</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>And, as expected:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-lisp" data-lang="lisp"><span class="p">(</span><span class="nv">our-page</span> <span class="s">&#34;Saying hi&#34;</span><span class="p">)</span>
+<span class="nv">-&gt;</span>
+<span class="o">&#39;</span><span class="p">(</span><span class="nv">html</span>
+  <span class="p">(</span><span class="nv">head</span> <span class="p">(</span><span class="nv">meta</span> <span class="p">(</span><span class="p">(</span><span class="nv">charset</span> <span class="s">&#34;utf-8&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span> <span class="p">(</span><span class="nv">title</span> <span class="s">&#34;Saying hi&#34;</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">(</span><span class="nv">body</span>
+    <span class="p">(</span><span class="nv">p</span> <span class="s">&#34;Hi world!&#34;</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">ul</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+    <span class="p">(</span><span class="nv">li</span> <span class="p">(</span><span class="nv">ul</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span> <span class="p">(</span><span class="nv">li</span> <span class="s">&#34;hello!&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>It looks a lot like a template, where you pass data and that data goes somewhere within the template, and that&rsquo;s because it is one. With a little bit of ingeniuity and quoting, we&rsquo;ve managed to make HTML programmable in a much more natural way.</p>
+<p>There is no  distinction between code and data. Data can go anywhere code usually goes: as seen, we use the usual HTML elements like <code>body</code> along with our own constructs like <code>genlist</code> and it works. This is the principle behind <a href="https://en.wikipedia.org/wiki/S-expression#Use_in_Lisp">S-expressions</a>: <strong>code is data</strong>. With X-expressions, which are expressions as well, we can transform a fixed language like HTML and add our own constructs to it, instead of treating it as data to pass around.</p>
+<p>Racket is particularly skilled at this feat: it can create its own languages. We could imagine a new language based on HTML but with new, more convenient syntaxic forms. If you are interested in this idea, check out <a href="https://beautifulracket.com/">Beautiful Racket</a>.</p>
+<h2 id="conclusion-making-a-blog-in-racket">Conclusion: making a blog in Racket</h2>
+<p>This blog is written in Racket, and most of the HTML here is generated with X-expressions. The static site generator I use is called <a href="https://github.com/zyrolasting/polyglot">polyglot</a>, which allows to write HTML in any Racket-created language. It takes this idea and adds a lot of cool stuff to make it usable, including:</p>
+<ul>
+<li>a <a href="https://github.com/zyrolasting/unlike-assets">webpack-like system</a> in Racket to link assets together</li>
+<li>writing in markdown, with the ability to drop down to a Racket script that generates HTML like shown here, to have full control over prose and markup</li>
+<li>the ability to write HTML with any Racket language desired, not just Racket itself</li>
+</ul>
+<p>If nothing else, making sites in Racket is fun. It&rsquo;s not tiring to use like many web frameworks, and I think the end result looks nice. Racket can be practical, too!</p>
+
+    </div>
+</div>
+
+    <script src="/js/copy-code.js"></script>
+
+<script src="/js/feather.min.js"></script>
+<script>
+    feather.replace()
+</script>
+
+    </main>
+  </div>
+  
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-157500582-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+</body>
+</html>

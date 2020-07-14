@@ -10,7 +10,7 @@
 * {
   box-sizing: border-box;
 }
-body {     
+body {
   font-family: Rosario, sans-serif;
   font-size: 14px;
   margin: 0;
@@ -42,13 +42,13 @@ or a page itself.
 */
 .container {
   display: grid;
-  grid-template-areas: 
-    "sidebar"
-    "about"
-    "main";
+  grid-template-areas:
+    'sidebar'
+    'about'
+    'main';
   grid-template-rows:
-  [sidebar] 3rem
-  [about] 2rem;
+    [sidebar] 3rem
+    [about] 2rem;
 }
 $main-padding: 1rem; //! Padding on the sides.
 .main {
@@ -82,7 +82,7 @@ $main-padding: 1rem; //! Padding on the sides.
   object-fit: cover;
   border-radius: 0 0 3rem 0;
 }
-.sidebar-name { 
+.sidebar-name {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -122,7 +122,7 @@ $btn-radius: 0.25rem 0.25rem 1rem 0.25rem;
   background: $primary;
   border: none;
   color: white;
-} 
+}
 .btn + .btn {
   margin-left: 1rem;
 }
@@ -131,7 +131,7 @@ $btn-radius: 0.25rem 0.25rem 1rem 0.25rem;
 .btn::before {
   // Position the item
   position: absolute;
-  content: "";
+  content: '';
   bottom: 0;
   right: 0;
   height: 100%;
@@ -142,7 +142,7 @@ $btn-radius: 0.25rem 0.25rem 1rem 0.25rem;
   border-radius: $btn-radius;
   // Ease out
   // Expotential transform
-  transition: transform .2s cubic-bezier(1,0,0,1);
+  transition: transform 0.2s cubic-bezier(1, 0, 0, 1);
   transform: translateX(0rem) translateY(0rem);
 }
 .btn:link {
@@ -151,24 +151,24 @@ $btn-radius: 0.25rem 0.25rem 1rem 0.25rem;
 
 .btn:hover {
   background: rgba($primary, 0.8);
-  transition: background .05s linear;
+  transition: background 0.05s linear;
 }
 .btn:hover::before {
   position: absolute;
-  content: "";
+  content: '';
   bottom: 0;
   right: 0;
   height: 100%;
   width: 100%;
   background: $secondary;
   transform: translateX(0.25rem) translateY(0.25rem);
-  transition: transform .05s linear;
+  transition: transform 0.05s linear;
 }
 .btn:active::before {
   transform: translateX(0.5rem) translateY(0.5rem);
   background: rgba($secondary, 0.4);
-  transition: transform .05s linear; 
-  transition: background .05s linear;
+  transition: transform 0.05s linear;
+  transition: background 0.05s linear;
 }
 
 // Button is highlighted in some way;
@@ -197,18 +197,16 @@ h1 {
   font-size: $sm-h1-fs;
   color: $primary;
   display: flex;
-  margin-bottom: 0; // Make place for the post information.
 }
 h1::after {
-  content: " ";
+  content: ' ';
   margin-bottom: 10px;
   border-radius: 2px;
-  margin-left: 0.25rem;
+  margin-left: 0.75rem;
   background: linear-gradient(90deg, $primary 0%, rgba($secondary, 0.1) 100%);
   height: 3px;
   flex-grow: 1;
   align-self: flex-end;
-  box-shadow: 3px 3px 3px $light-gray;
 }
 
 h2 {
@@ -218,7 +216,7 @@ h2 {
   display: flex;
 }
 h2::after {
-  content: " ";
+  content: ' ';
   margin-bottom: 6px;
   border-radius: 2px;
   margin-left: 0.25rem;
@@ -233,17 +231,21 @@ h3 {
   display: flex;
 }
 h3::after {
-  content: " ";
+  content: ' ';
   margin-bottom: 5px;
   border-radius: 2px;
   margin-left: 0.25rem;
-  background: linear-gradient(90deg, rgba($primary, 0.8) 0%, rgba($secondary, 0) 80%);
+  background: linear-gradient(
+    90deg,
+    rgba($primary, 0.8) 0%,
+    rgba($secondary, 0) 80%
+  );
   height: 1px;
   flex-grow: 1;
   align-self: flex-end;
 }
 h3 > code {
-  font-family: "Fira Code";
+  font-family: 'Fira Code';
   border: 1px solid $secondary;
   padding: 0 0.25rem 0 0.25rem;
   border-radius: 3px;
@@ -256,14 +258,12 @@ a {
 @media (min-width: $md) {
   .container {
     display: grid;
-    grid-template-areas: 
-      "sidebar main"
-      "about main";
-    grid-template-columns: 
-    [sidebar] minmax(250px, 25fr) //! Minimum size of left column
-    [main] 75fr;
-    grid-template-rows:
-    [sidebar] 294px;
+    grid-template-areas:
+      'sidebar main'
+      'about main';
+    grid-template-columns: [sidebar] minmax(250px, 25fr) //! Minimum size of left column
+      [main] 75fr;
+    grid-template-rows: [sidebar] 294px;
     grid-column-gap: $main-padding;
   }
 
@@ -296,7 +296,7 @@ a {
   }
   h1::after {
     font-family: Roboto Condensed;
-    margin-top: $md-h1-fs - $md-h1-fs / 5 ;
+    margin-top: $md-h1-fs - $md-h1-fs / 5;
   }
   h2 {
     font-family: Roboto Condensed;
@@ -304,13 +304,12 @@ a {
   }
   h2::after {
     font-family: Roboto Condensed;
-    margin-top: $md-h2-fs - $md-h2-fs / 5 ;
+    margin-top: $md-h2-fs - $md-h2-fs / 5;
   }
 
-	@media (min-width: $md) {
-		h1 {
-			margin-top: 1rem;
-		}
-	}
-
+  @media (min-width: $md) {
+    h1 {
+      margin-top: 1rem;
+    }
+  }
 }

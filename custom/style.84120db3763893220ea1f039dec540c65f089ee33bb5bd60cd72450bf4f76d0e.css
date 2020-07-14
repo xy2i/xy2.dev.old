@@ -642,25 +642,43 @@
 
 .main .portfolio .grid {
   display: grid;
-  grid-template-areas: "preview description" "links   description";
+  grid-template-areas: 'preview description' 'links   description';
   grid-template-columns: [preview] 50fr [description] 50fr;
   grid-template-rows: [preview] 6rem; }
 
-.main .portfolio .preview {
-  grid-area: preview;
-  flex-basis: 60%;
-  flex-shrink: 0; }
+.main .portfolio .card {
+  border: 1px solid #533633;
+  border-radius: 5px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); }
 
-.main .portfolio .description {
-  grid-area: description;
-  flex-shrink: 1;
-  align-self: flex-end;
-  padding-left: 1rem;
-  margin-top: 0;
-  margin-bottom: 0; }
+.main .portfolio .card-img-container {
+  display: block;
+  border-bottom: 1px solid #533633; }
 
-.main .portfolio .links {
-  grid-area: links; }
+.main .portfolio .card-img {
+  display: block;
+  width: 100%;
+  border-radius: 5px; }
+
+.main .portfolio .card-content {
+  padding: 1rem;
+  border-bottom: 1px solid #B4B881; }
+  .main .portfolio .card-content .card-title {
+    font-size: 2rem; }
+
+.main .portfolio .card-info {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 1rem;
+  color: #533633;
+  background-color: rgba(180, 184, 129, 0.4);
+  font-family: Fira Code;
+  border-radius: 0 0 5px 5px; }
+  .main .portfolio .card-info .feather {
+    height: 1rem;
+    margin-right: 0.5rem; }
+  .main .portfolio .card-info .links .link:not(:first-child) {
+    margin-left: 1rem; }
 
 @media (min-width: 1000px) {
   .main .portfolio .preview-date {

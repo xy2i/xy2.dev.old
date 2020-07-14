@@ -3,6 +3,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 {{ $style := resources.Get "style/main.scss" | toCSS (dict "targetPath" "custom/style.css" "enableSourceMap" true) | fingerprint }}
 <link rel="stylesheet" href="{{ $style.Permalink }}">
+{{ range .AlternativeOutputFormats -}}
+    {{ printf `<link rel="%s" type="%s" href="%s" title="%s" />` .Rel .MediaType.Type .Permalink $.Site.Title | safeHTML }}
+{{ end -}}
 {{ if .Params.singleCSS }}
     {{ $single := (.Resources.GetMatch "css/main.scss") }}
     {{ $styleSingle := $single | toCSS (dict "targetPath" "custom/style.css" "enableSourceMap" true) }}

@@ -16,14 +16,13 @@
   </div>
   <h1 class="main-title">Posts</h1>
   <ul class="preview-ul">
-    {{ range where .Site.RegularPages.ByPublishDate.Reverse ".Section" "article"}}
-      {{ partial "preview-item.html" . }}
-    {{ end }}
+    {{ range where .Site.RegularPages.ByPublishDate.Reverse ".Section"
+    "article"}} {{ partial "preview-item.html" . }} {{ end }}
   </ul>
 </div>
 
 <script src="/js/feather.min.js"></script>
 <script>
-  feather.replace({ width: '1rem', height: '1rem' })
+  feather.replace({ width: '1em', height: '1em' })
 </script>
 {{ end }}
